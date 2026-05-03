@@ -12,8 +12,21 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                black: '#2d2d2d',
+                'dark-gray': '#555555',
+                'mid-gray': '#999999',
+                'light-gray': '#f0f0f0',
+                'surface-gray': '#f7f7f7',
+                'border-gray': '#e5e5e5',
+            },
+            borderRadius: {
+                'card': '0px',
+                'input': '0px',
+                'badge': '0px',
+            }
         },
     },
 

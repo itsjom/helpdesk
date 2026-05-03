@@ -1,3 +1,50 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-white text-[#555555] font-sans antialiased text-[14px] leading-relaxed;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply text-[#2d2d2d] font-semibold tracking-tight;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #e0e0e0;
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #cccccc;
+    }
+}
+
+@layer components {
+    .card {
+        @apply bg-white border border-[#e5e5e5] rounded-none p-5 md:p-6;
+    }
+    
+    .input-field {
+        @apply bg-[#f7f7f7] border border-[#e5e5e5] rounded-none px-4 py-2.5 text-[14px] text-[#2d2d2d] transition-all focus:bg-white focus:border-[#2d2d2d] focus:ring-0 outline-none placeholder:text-[#999999];
+    }
+
+    .btn-primary {
+        @apply bg-[#2d2d2d] text-white rounded-none px-5 py-2.5 text-[14px] font-medium transition-all hover:bg-[#454545] active:scale-95 disabled:bg-[#999999];
+    }
+
+    .btn-secondary {
+        @apply bg-white text-[#2d2d2d] border border-[#2d2d2d] rounded-none px-5 py-2.5 text-[14px] font-medium transition-all hover:bg-[#f7f7f7] active:scale-95;
+    }
+
+    .btn-ghost {
+        @apply bg-transparent text-[#555555] border border-[#e5e5e5] rounded-none px-5 py-2.5 text-[14px] transition-all hover:bg-[#f7f7f7] hover:border-[#cccccc];
+    }
+}

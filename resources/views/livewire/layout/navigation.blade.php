@@ -5,6 +5,12 @@ use Livewire\Volt\Component;
 
 new class extends Component
 {
+    #[\Livewire\Attributes\On('profile-updated')]
+    public function refreshProfile(): void
+    {
+        // Trigger re-render to update the displayed profile photo
+    }
+
     /**
      * Log the current user out of the application.
      */
@@ -16,95 +22,67 @@ new class extends Component
     }
 }; ?>
 
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" wire:navigate>
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                    </a>
-                </div>
-
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                </div>
-            </div>
-
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile')" wire:navigate>
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
-                        <button wire:click="logout" class="w-full text-start">
-                            <x-dropdown-link>
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </button>
-                    </x-slot>
-                </x-dropdown>
-            </div>
-
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
+<aside class="w-[220px] bg-[#2d2d2d] h-screen flex flex-col sticky top-0 shadow-lg shadow-black/10">
+    <!-- Logo Section -->
+    <div class="h-16 flex items-center px-6 border-b border-white/10 shrink-0">
+        <a href="{{ auth()->user()->role === 'admin' ? route('admin.dashboard') : route('user.tickets') }}" wire:navigate class="flex items-center">
+            <span class="text-[15px] font-bold tracking-tight text-white uppercase letter-spacing-0.1em">Helpdesk</span>
+        </a>
     </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
+    <!-- Navigation Links -->
+    <nav class="flex-1 px-3 py-8 space-y-2 overflow-y-auto">
+        @if(auth()->user()->role === 'admin')
+            <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')" wire:navigate>
                 {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-        </div>
-
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
-                <div class="font-medium text-sm text-gray-500">{{ auth()->user()->email }}</div>
+            </x-nav-link>
+            <x-nav-link :href="route('admin.tickets')" :active="request()->routeIs('admin.tickets*')" wire:navigate>
+                {{ __('Tickets') }}
+            </x-nav-link>
+            <x-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')" wire:navigate>
+                {{ __('Users') }}
+            </x-nav-link>
+            <x-nav-link :href="route('admin.reports')" :active="request()->routeIs('admin.reports')" wire:navigate>
+                {{ __('Reports') }}
+            </x-nav-link>
+        @else
+            <div class="px-3 mb-4">
+                <span class="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">My Workspace</span>
             </div>
+            <x-nav-link :href="route('user.tickets')" :active="request()->routeIs('user.tickets')" wire:navigate>
+                {{ __('My Tickets') }}
+            </x-nav-link>
+            <x-nav-link :href="route('user.tickets.create')" :active="request()->routeIs('user.tickets.create')" wire:navigate>
+                {{ __('Request Ticket') }}
+            </x-nav-link>
+        @endif
+    </nav>
 
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile')" wire:navigate>
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
-                <button wire:click="logout" class="w-full text-start">
-                    <x-responsive-nav-link>
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
+    <!-- User Profile & Logout -->
+    <div class="p-4 bg-white/5 border-t border-white/10 shrink-0">
+        <div class="flex flex-col space-y-6">
+            <div class="px-2 flex items-center gap-3">
+                @if (auth()->user()->profile_photo_path)
+                    <img src="{{ Storage::url(auth()->user()->profile_photo_path) }}" class="h-9 w-9 rounded-full object-cover shrink-0 border border-white/20">
+                @else
+                    <div class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+                        <span class="text-white text-xs font-bold">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                    </div>
+                @endif
+                <div class="min-w-0">
+                    <div class="text-[13px] font-bold text-white truncate">{{ auth()->user()->name }}</div>
+                    <div class="text-[11px] text-white/40 truncate">{{ auth()->user()->username }}</div>
+                </div>
+            </div>
+            
+            <div class="space-y-1">
+                <a href="{{ route('profile') }}" wire:navigate class="flex items-center px-3 py-2 text-[12px] font-medium text-white/60 hover:bg-white/10 hover:text-white rounded-lg transition-all">
+                    {{ __('Profile Settings') }}
+                </a>
+                <button wire:click="logout" class="w-full flex items-center px-3 py-2 text-[12px] font-medium text-white/60 hover:bg-white/10 hover:text-white rounded-lg transition-all">
+                    {{ __('Log Out') }}
                 </button>
             </div>
         </div>
     </div>
-</nav>
+</aside>
