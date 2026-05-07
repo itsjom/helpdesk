@@ -13,5 +13,9 @@
 @endphp
 
 <span {{ $attributes->merge(['class' => "px-3 py-1 rounded-none text-[11px] font-medium border uppercase tracking-wide inline-flex items-center $classes"]) }}>
-    {{ str_replace('_', ' ', $status) }}
+    {{ match($status) {
+        'approved' => 'OnQueue',
+        'in_progress' => 'In Progress',
+        default => str_replace('_', ' ', $status)
+    } }}
 </span>

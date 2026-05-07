@@ -20,9 +20,7 @@ class DisposalForm extends Component
     {
         $this->ticket = Ticket::with(['user', 'serviceType'])->findOrFail($ticketId);
 
-        if (($this->ticket->serviceType?->kind ?? '') !== ServiceType::KIND_DISPOSAL) {
-            return redirect()->route('admin.tickets');
-        }
+
 
         if ($this->ticket->disposal) {
             $this->cause = $this->ticket->disposal->cause_of_disposal;

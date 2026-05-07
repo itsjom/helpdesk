@@ -21,7 +21,7 @@
 <body>
     <div class="header">
         <h1>IT HARDWARE RECOMMENDATION</h1>
-        <p>Ticketing IT System (TITS)</p>
+        <p>Helpdesk</p>
     </div>
 
     <div class="info-section">
@@ -52,7 +52,7 @@
     </div>
 
     <div class="footer">
-        <p>This is a system-generated document from the TITS Platform.</p>
+        <p>This is a system-generated document from the Helpdesk Platform.</p>
         <p>© {{ date('Y') }} IT Department</p>
     </div>
 </body>

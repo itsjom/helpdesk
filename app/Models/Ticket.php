@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Ticket extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'ticket_no',
         'user_id',
@@ -31,13 +33,13 @@ class Ticket extends Model
             $sequence = $latest ? intval(substr($latest->ticket_no, -4)) + 1 : 1;
             $ticket->ticket_no = "TKT-$date-".str_pad($sequence, 4, '0', STR_PAD_LEFT);
 
-            // Calculate due date based on priority if not already set
-            if (! $ticket->due_date) {
+            // Calculate due date based on priority if not already set and priority exists
+            if (! $ticket->due_date && $ticket->priority) {
                 $ticket->due_date = match (strtolower($ticket->priority)) {
                     'high' => now()->addHours(4),
                     'medium' => now()->addDay(),
                     'low' => now()->addDays(3),
-                    default => now()->addDays(3),
+                    default => null,
                 };
             }
 

@@ -1,6 +1,6 @@
-<div class="space-y-6">
-    <div class="flex justify-between items-center">
-        <h2 class="text-[24px] font-bold text-[#2d2d2d] tracking-tight">Reports</h2>
+<div>
+    <div class="flex justify-between items-center mb-12">
+        <h1 class="text-[24px] font-semibold text-[#2d2d2d] uppercase tracking-widest">Reports</h1>
         <div class="flex items-center gap-4">
             <select wire:model.live="period" class="input-field text-[13px] py-1.5 px-3">
                 <option value="day">Today</option>
@@ -15,40 +15,44 @@
         </div>
     </div>
 
-    <div class="bg-white border border-[#e5e5e5] p-8 rounded-none">
+    <div class="bg-white border border-[#e5e5e5] p-8 rounded-none mb-12">
         <div class="mb-8">
-            <h3 class="text-[14px] font-bold text-[#2d2d2d] uppercase tracking-widest border-b border-[#e5e5e5] pb-4 mb-6">
+            <h3 class="text-[14px] font-semibold text-[#2d2d2d] uppercase tracking-widest border-b border-[#e5e5e5] pb-4 mb-6">
                 Overview ({{ ucfirst($period) }})
             </h3>
             
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div class="bg-[#f7f7f7] p-6 border border-[#e5e5e5] rounded-none">
-                    <div class="text-[11px] font-bold text-[#999999] uppercase tracking-widest mb-2">Total Tickets</div>
-                    <div class="text-[32px] font-bold text-[#2d2d2d]">{{ $stats['total'] }}</div>
+                    <div class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-2">Total</div>
+                    <div class="text-[32px] font-semibold text-[#2d2d2d]">{{ $stats['total'] }}</div>
                 </div>
                 <div class="bg-[#2d2d2d] p-6 border border-[#2d2d2d] rounded-none">
-                    <div class="text-[11px] font-bold text-white/50 uppercase tracking-widest mb-2">Pending</div>
-                    <div class="text-[32px] font-bold text-white">{{ $stats['pending'] }}</div>
+                    <div class="text-[11px] font-medium text-white/50 uppercase tracking-widest mb-2">Pending</div>
+                    <div class="text-[32px] font-semibold text-white">{{ $stats['pending'] }}</div>
                 </div>
                 <div class="bg-[#f7f7f7] p-6 border border-[#e5e5e5] rounded-none">
-                    <div class="text-[11px] font-bold text-[#999999] uppercase tracking-widest mb-2">In Progress</div>
-                    <div class="text-[32px] font-bold text-[#2d2d2d]">{{ $stats['in_progress'] + $stats['approved'] }}</div>
+                    <div class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-2">OnQueue</div>
+                    <div class="text-[32px] font-semibold text-[#2d2d2d]">{{ $stats['approved'] }}</div>
                 </div>
                 <div class="bg-[#f7f7f7] p-6 border border-[#e5e5e5] rounded-none">
-                    <div class="text-[11px] font-bold text-[#999999] uppercase tracking-widest mb-2">Resolved</div>
-                    <div class="text-[32px] font-bold text-[#2d2d2d]">{{ $stats['resolved'] }}</div>
+                    <div class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-2">In Progress</div>
+                    <div class="text-[32px] font-semibold text-[#2d2d2d]">{{ $stats['in_progress'] }}</div>
+                </div>
+                <div class="bg-[#f7f7f7] p-6 border border-[#e5e5e5] rounded-none">
+                    <div class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-2">Resolved</div>
+                    <div class="text-[32px] font-semibold text-[#2d2d2d]">{{ $stats['resolved'] }}</div>
                 </div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-[#e5e5e5] pt-8">
             <div>
-                <h4 class="text-[12px] font-bold text-[#2d2d2d] uppercase tracking-widest mb-4">By Service Type</h4>
+                <h4 class="text-[12px] font-semibold text-[#2d2d2d] uppercase tracking-widest mb-4">By Service Type</h4>
                 <div class="space-y-3">
                     @forelse($stats['by_service'] as $row)
                         <div class="flex justify-between items-center bg-[#f7f7f7] p-3 border border-[#e5e5e5]">
                             <span class="text-[13px] text-[#555555]">{{ $row['label'] }}</span>
-                            <span class="text-[13px] font-bold text-[#2d2d2d]">{{ $row['count'] }}</span>
+                            <span class="text-[13px] font-semibold text-[#2d2d2d]">{{ $row['count'] }}</span>
                         </div>
                     @empty
                         <div class="text-[13px] text-[#999999] italic">No data available for this period.</div>
@@ -57,15 +61,15 @@
             </div>
             
             <div>
-                <h4 class="text-[12px] font-bold text-[#2d2d2d] uppercase tracking-widest mb-4">Other Statuses</h4>
+                <h4 class="text-[12px] font-semibold text-[#2d2d2d] uppercase tracking-widest mb-4">Other Statuses</h4>
                 <div class="space-y-3">
                     <div class="flex justify-between items-center bg-[#f7f7f7] p-3 border border-[#e5e5e5]">
                         <span class="text-[13px] text-[#555555]">Disapproved</span>
-                        <span class="text-[13px] font-bold text-[#2d2d2d]">{{ $stats['disapproved'] }}</span>
+                        <span class="text-[13px] font-semibold text-[#2d2d2d]">{{ $stats['disapproved'] }}</span>
                     </div>
                     <div class="flex justify-between items-center bg-[#f7f7f7] p-3 border border-[#e5e5e5]">
                         <span class="text-[13px] text-[#555555]">Cancelled</span>
-                        <span class="text-[13px] font-bold text-[#2d2d2d]">{{ $stats['cancelled'] }}</span>
+                        <span class="text-[13px] font-semibold text-[#2d2d2d]">{{ $stats['cancelled'] }}</span>
                     </div>
                 </div>
             </div>

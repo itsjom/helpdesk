@@ -8,35 +8,65 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
      */
     public function run(): void
     {
+        // 1. Create Departments
+        $departments = [
+            'IT Support',
+            'Human Resources',
+            'Finance',
+            'Marketing',
+            'Sales',
+            'Operations',
+            'Legal',
+            'Customer Success',
+            'Research & Development',
+            'Administration',
+        ];
+
+        $deptModels = [];
+        foreach ($departments as $name) {
+            $deptModels[] = \App\Models\Department::create(['name' => $name]);
+        }
+
+        // 2. Create Admin
         User::create([
             'name' => 'System Administrator',
             'username' => 'admin',
-            'password' => 'password', // Will be hashed by model cast
+            'password' => 'password',
             'role' => 'admin',
-            'department' => 'IT Department',
+            'department_id' => $deptModels[0]->id, // IT Support
         ]);
 
-        User::create([
-            'name' => 'Juan dela Cruz',
-            'username' => 'jdelacruz',
-            'password' => 'password',
-            'role' => 'user',
-            'department' => 'Finance',
+        // 3. Create 300 Users
+        User::factory()->count(300)->create([
+            'department_id' => fn() => $deptModels[array_rand($deptModels)]->id,
         ]);
 
-        User::create([
-            'name' => 'Maria Santos',
-            'username' => 'msantos',
-            'password' => 'password',
-            'role' => 'user',
-            'department' => 'HR',
-        ]);
+        // 4. Create 70 Tickets
+        \App\Models\Ticket::factory()->count(70)->create()->each(function ($ticket) {
+            // Create initial log for each ticket
+            \App\Models\TicketLog::create([
+                'ticket_id' => $ticket->id,
+                'changed_by' => $ticket->user_id,
+                'old_status' => null,
+                'new_status' => 'pending',
+                'remarks' => 'Ticket submitted.',
+            ]);
+
+            // If ticket is not pending, add another log for status change
+            if ($ticket->status !== 'pending') {
+                \App\Models\TicketLog::create([
+                    'ticket_id' => $ticket->id,
+                    'changed_by' => $ticket->assigned_to ?? User::where('role', 'admin')->first()->id,
+                    'old_status' => 'pending',
+                    'new_status' => $ticket->status,
+                    'remarks' => $ticket->admin_remarks ?? 'Status updated by admin.',
+                ]);
+            }
+        });
     }
 }

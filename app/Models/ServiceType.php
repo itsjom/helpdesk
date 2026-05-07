@@ -9,10 +9,6 @@ class ServiceType extends Model
 {
     public const KIND_GENERAL = 'general';
 
-    public const KIND_RECOMMENDATION = 'recommendation';
-
-    public const KIND_DISPOSAL = 'disposal';
-
     protected $fillable = [
         'code',
         'name',

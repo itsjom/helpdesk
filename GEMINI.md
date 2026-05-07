@@ -1,7 +1,7 @@
-# GEMINI.md — IT Ticketing System
+# GEMINI.md — Helpdesk
 
 ## Project Overview
-This is an IT Ticketing System built with **Laravel 11 + Livewire v3 + Tailwind CSS + MySQL**.
+This is an Helpdesk built with **Laravel 11 + Livewire v3 + Tailwind CSS + MySQL**.
 It allows users to submit IT service requests (tickets) and admins to manage, approve, assign, and resolve them.
 There is no separate JavaScript framework — all reactivity is handled by Livewire and Alpine.js.
 
@@ -78,6 +78,8 @@ There is no separate JavaScript framework — all reactivity is handled by Livew
 `network` | `printer` | `ups` | `desktop_laptop` | `other`
 
 ### Priority & SLA (Due Date)
+*Determined by Admin upon review*
+
 | Priority | SLA     |
 |----------|---------|
 | High     | 4 hours |
@@ -86,7 +88,7 @@ There is no separate JavaScript framework — all reactivity is handled by Livew
 
 ### Status Flow
 ```
-Pending → Approved → In Progress → Resolved
+Pending → OnQueue → In Progress → Resolved
        ↘ Disapproved
        ↘ Cancelled (by user, only when Pending)
 ```

@@ -42,7 +42,7 @@ class MyTickets extends Component
     public function render()
     {
         return view('livewire.user.my-tickets', [
-            'tickets' => Ticket::with(['recommendation', 'assignedTo', 'serviceType'])
+            'tickets' => Ticket::with(['recommendation', 'disposal', 'assignedTo', 'serviceType'])
                 ->where('user_id', auth()->id())
                 ->latest()
                 ->paginate(10),

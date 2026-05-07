@@ -3,7 +3,7 @@
         <!-- Header -->
         <div class="mb-12">
             <h1 class="text-4xl font-black text-gray-900 tracking-tight">System Style Guide</h1>
-            <p class="mt-2 text-lg text-gray-600">Previewing the suggested color palettes for the TITS Platform.</p>
+            <p class="mt-2 text-lg text-gray-600">Previewing the suggested color palettes for the Helpdesk.</p>
         </div>
 
         <!-- Palette 1: Midnight Enterprise -->

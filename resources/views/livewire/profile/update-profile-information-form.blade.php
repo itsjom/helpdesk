@@ -35,7 +35,9 @@ new class extends Component
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'lowercase', 'max:50', Rule::unique(User::class)->ignore($user->id)],
-            'photo' => ['nullable', 'mimes:jpg,jpeg,png,gif,webp', 'max:4096'],
+            'photo' => ['nullable', 'mimes:jpg,jpeg,png,gif,webp', 'max:10240'],
+        ], [
+            'photo.max' => 'The profile photo may not be greater than 10MB.',
         ]);
 
         if ($this->photo) {
@@ -77,7 +79,7 @@ new class extends Component
                     @if ($photo)
                         <img src="{{ $photo->temporaryUrl() }}" class="h-full w-full object-cover">
                     @elseif (auth()->user()->profile_photo_path)
-                        <img src="{{ Storage::url(auth()->user()->profile_photo_path) }}" class="h-full w-full object-cover">
+                        <img src="{{ auth()->user()->profilePhotoUrl() }}" class="h-full w-full object-cover">
                     @else
                         <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />

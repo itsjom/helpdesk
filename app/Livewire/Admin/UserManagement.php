@@ -31,14 +31,16 @@ class UserManagement extends Component
     // Department Fields
     public $dept_name = '';
 
+    public $isEditingDept = false;
+
+    public $editingDeptId = null;
+
     // Service type fields
     public $st_name = '';
 
     public $st_sort_order = 0;
 
     public $st_is_active = true;
-
-    public $st_kind = 'general';
 
     /** Shown in edit modal only (code is immutable after create) */
     public $st_code_readonly = '';
@@ -86,12 +88,16 @@ class UserManagement extends Component
                 'st_name' => 'required|string|max:255',
                 'st_sort_order' => 'required|integer|min:0|max:65535',
                 'st_is_active' => 'boolean',
-                'st_kind' => 'required|in:general,recommendation,disposal',
             ];
         }
 
         return [
-            'dept_name' => 'required|string|max:255|unique:departments,name',
+            'dept_name' => [
+                'required',
+                'string',
+                'max:255',
+                $this->isEditingDept ? Rule::unique('departments', 'name')->ignore($this->editingDeptId) : 'unique:departments,name',
+            ],
         ];
     }
 
@@ -153,13 +159,34 @@ class UserManagement extends Component
 
     public function createDepartment()
     {
-        $this->validate(['dept_name' => 'required|string|max:255|unique:departments,name']);
+        $this->validate();
 
         Department::create(['name' => $this->dept_name]);
 
-        $this->reset('dept_name');
-        $this->dispatch('close-modal', 'add-dept-modal');
+        $this->reset(['dept_name', 'isEditingDept', 'editingDeptId']);
+        $this->dispatch('close-modal', 'dept-modal');
         session()->flash('success', 'Department created successfully!');
+    }
+
+    public function editDepartment($id)
+    {
+        $this->isEditingDept = true;
+        $this->editingDeptId = $id;
+        $dept = Department::findOrFail($id);
+        $this->dept_name = $dept->name;
+        $this->dispatch('open-modal', 'dept-modal');
+    }
+
+    public function updateDepartment()
+    {
+        $this->validate();
+
+        $dept = Department::findOrFail($this->editingDeptId);
+        $dept->update(['name' => $this->dept_name]);
+
+        $this->reset(['dept_name', 'isEditingDept', 'editingDeptId']);
+        $this->dispatch('close-modal', 'dept-modal');
+        session()->flash('success', 'Department updated successfully!');
     }
 
     public function openServiceTypeModal()
@@ -169,7 +196,6 @@ class UserManagement extends Component
         $this->st_name = '';
         $this->st_sort_order = (int) (ServiceType::max('sort_order') ?? 0) + 10;
         $this->st_is_active = true;
-        $this->st_kind = ServiceType::KIND_GENERAL;
         $this->st_code_readonly = '';
         $this->resetErrorBag();
         $this->dispatch('open-modal', 'service-type-modal');
@@ -183,7 +209,6 @@ class UserManagement extends Component
         $this->st_name = $st->name;
         $this->st_sort_order = $st->sort_order;
         $this->st_is_active = $st->is_active;
-        $this->st_kind = $st->kind;
         $this->st_code_readonly = $st->code;
         $this->resetErrorBag();
         $this->dispatch('open-modal', 'service-type-modal');
@@ -192,7 +217,6 @@ class UserManagement extends Component
     public function saveServiceType()
     {
         $this->validate();
-        $this->assertKindUniqueness();
 
         if ($this->isEditingServiceType) {
             $st = ServiceType::findOrFail($this->editingServiceTypeId);
@@ -200,7 +224,7 @@ class UserManagement extends Component
                 'name' => $this->st_name,
                 'sort_order' => $this->st_sort_order,
                 'is_active' => $this->st_is_active,
-                'kind' => $this->st_kind,
+                'kind' => ServiceType::KIND_GENERAL,
             ]);
             session()->flash('success', 'Service type updated.');
         } else {
@@ -209,7 +233,7 @@ class UserManagement extends Component
                 'name' => $this->st_name,
                 'sort_order' => $this->st_sort_order,
                 'is_active' => $this->st_is_active,
-                'kind' => $this->st_kind,
+                'kind' => ServiceType::KIND_GENERAL,
             ]);
             session()->flash('success', 'Service type created.');
         }
@@ -220,10 +244,9 @@ class UserManagement extends Component
 
     protected function resetServiceTypeForm(): void
     {
-        $this->reset(['st_name', 'st_sort_order', 'st_is_active', 'st_kind', 'isEditingServiceType', 'editingServiceTypeId', 'st_code_readonly']);
+        $this->reset(['st_name', 'st_sort_order', 'st_is_active', 'isEditingServiceType', 'editingServiceTypeId', 'st_code_readonly']);
         $this->st_sort_order = 0;
         $this->st_is_active = true;
-        $this->st_kind = ServiceType::KIND_GENERAL;
     }
 
     protected function generateUniqueServiceTypeCode(string $name): string
@@ -242,23 +265,6 @@ class UserManagement extends Component
         return $code;
     }
 
-    protected function assertKindUniqueness(): void
-    {
-        if ($this->st_kind === ServiceType::KIND_GENERAL) {
-            return;
-        }
-
-        $query = ServiceType::where('kind', $this->st_kind);
-        if ($this->isEditingServiceType && $this->editingServiceTypeId) {
-            $query->where('id', '!=', $this->editingServiceTypeId);
-        }
-
-        if ($query->exists()) {
-            throw ValidationException::withMessages([
-                'st_kind' => __('Only one service type can use the recommendation workflow, and only one can use the disposal workflow.'),
-            ]);
-        }
-    }
 
     public function confirmUserDeletion($id)
     {
@@ -335,7 +341,7 @@ class UserManagement extends Component
 
     public function resetFields()
     {
-        $this->reset(['name', 'username', 'password', 'role', 'department_id', 'isEditing', 'editingUserId']);
+        $this->reset(['name', 'username', 'password', 'role', 'department_id', 'isEditing', 'editingUserId', 'dept_name', 'isEditingDept', 'editingDeptId']);
     }
 
     public function openCreateModal()

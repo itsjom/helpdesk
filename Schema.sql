@@ -1,5 +1,5 @@
 -- ============================================================
--- IT Ticketing System — MySQL Schema
+-- Helpdesk — MySQL Schema
 -- Stack: Laravel 11 + Inertia.js + Svelte
 -- ============================================================
 

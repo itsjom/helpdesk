@@ -47,7 +47,7 @@ class TicketLog extends Model
     {
         return match ($status) {
             'pending' => 'Pending',
-            'approved' => 'Approved',
+            'approved' => 'OnQueue',
             'in_progress' => 'In progress',
             'resolved' => 'Resolved',
             'disapproved' => 'Disapproved',

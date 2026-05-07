@@ -19,30 +19,6 @@
                     <x-input-error :messages="$errors->get('service_type')" />
                 </div>
 
-                <!-- Priority -->
-                <div class="space-y-4">
-                    <label for="priority" class="text-[11px] font-medium text-[#999999] uppercase tracking-widest block">Priority</label>
-                    <select wire:model.live="priority" id="priority" class="input-field w-full">
-                        <option value="">Select priority level</option>
-                        <option value="high">High (Urgent)</option>
-                        <option value="medium">Medium (Standard)</option>
-                        <option value="low">Low (Minor)</option>
-                    </select>
-                    <x-input-error :messages="$errors->get('priority')" />
-                    
-                    @if($priority)
-                        <div class="mt-4 p-4 bg-[#f7f7f7] rounded-[8px] border border-[#e5e5e5] flex items-center gap-4 transition-all animate-fade-in">
-                            <div class="w-1.5 h-10 bg-[#2d2d2d] rounded-full"></div>
-                            <div class="text-[12px] text-[#555555]">
-                                <span class="font-semibold text-[#2d2d2d] uppercase tracking-tight mr-1">SLA Commitment:</span> 
-                                @if($priority === 'high') Resolved within <span class="font-bold underline">4 Hours</span>
-                                @elseif($priority === 'medium') Resolved within <span class="font-bold underline">1 Day</span>
-                                @else Resolved within <span class="font-bold underline">3 Days</span>
-                                @endif
-                            </div>
-                        </div>
-                    @endif
-                </div>
 
                 <!-- Description -->
                 <div class="space-y-4">

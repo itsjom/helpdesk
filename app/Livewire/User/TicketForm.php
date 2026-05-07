@@ -13,7 +13,6 @@ class TicketForm extends Component
 {
     public $service_type = '';
 
-    public $priority = '';
 
     public $description = '';
 
@@ -24,7 +23,6 @@ class TicketForm extends Component
                 'required',
                 Rule::exists('service_types', 'code')->where('is_active', true),
             ],
-            'priority' => 'required|in:high,medium,low',
             'description' => 'required|min:10',
         ];
     }
@@ -36,7 +34,6 @@ class TicketForm extends Component
         $ticket = Ticket::create([
             'user_id' => auth()->id(),
             'service_type' => $this->service_type,
-            'priority' => $this->priority,
             'description' => $this->description,
         ]);
 

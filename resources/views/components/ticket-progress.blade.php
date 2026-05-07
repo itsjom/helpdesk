@@ -1,4 +1,4 @@
-@props(['status', 'serviceKind' => 'general'])
+@props(['status', 'priority' => 'medium', 'serviceKind' => 'general'])
 
 @php
     $status = (string) $status;
@@ -12,13 +12,11 @@
         default => -1,
     };
 
+    $barColor = 'bg-[#2d2d2d]';
+
     $hint = match ($status) {
         'pending' => 'Waiting for IT review',
-        'approved' => match ($serviceKind) {
-            'recommendation' => 'Next: complete recommendation',
-            'disposal' => 'Next: complete disposal',
-            default => 'Approved — ready to start work',
-        },
+        'approved' => 'OnQueue — ready to start work',
         'in_progress' => 'Work in progress',
         'resolved' => 'Completed',
         'disapproved' => 'Not approved',
@@ -34,8 +32,8 @@
         <div class="flex gap-0.5 mb-1 max-w-[200px]">
             @for ($i = 0; $i < 4; $i++)
                 <div
-                    class="h-1.5 min-w-[12px] flex-1 rounded-none {{ $i <= $activeIndex ? 'bg-[#2d2d2d]' : 'bg-[#e5e5e5]' }}"
-                    title="{{ ['Submitted', 'Reviewed', 'In progress', 'Done'][$i] ?? '' }}"
+                    class="h-1.5 min-w-[12px] flex-1 rounded-none {{ $i <= $activeIndex ? $barColor : 'bg-[#e5e5e5]' }}"
+                    title="{{ ['Submitted', 'OnQueue', 'In progress', 'Done'][$i] ?? '' }}"
                 ></div>
             @endfor
         </div>

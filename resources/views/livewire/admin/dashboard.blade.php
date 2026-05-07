@@ -1,6 +1,6 @@
 <div>
     <div class="mb-12">
-        <h1 class="text-[24px] font-semibold text-[#2d2d2d]">Dashboard</h1>
+        <h1 class="text-[24px] font-semibold text-[#2d2d2d] uppercase tracking-widest">Dashboard</h1>
     </div>
 
     <!-- Stats Grid -->
@@ -9,7 +9,7 @@
             <div class="text-[11px] font-medium opacity-50 uppercase tracking-widest mb-1">Total Tickets</div>
             <div class="text-[24px] font-semibold">{{ $stats['total'] }}</div>
         </div>
-        <div class="bg-[#f7f7f7] rounded-[10px] p-5">
+        <div class="bg-[#f7f7f7] rounded-none p-5">
             <div class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-1">Open</div>
             <div class="text-[24px] font-semibold text-[#2d2d2d]">{{ $stats['open'] }}</div>
         </div>
@@ -23,25 +23,23 @@
         </div>
     </div>
 
-    {{-- Network Chart --}}
+    {{-- Unified Network Section --}}
     <div class="mb-16">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-[16px] font-semibold text-[#2d2d2d] uppercase tracking-wide border-b border-[#e5e5e5] pb-3 flex-1">System Network</h2>
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-[16px] font-semibold text-[#2d2d2d] uppercase tracking-wide border-b border-[#e5e5e5] pb-3 flex-1">System Network Overview</h2>
             <div class="flex items-center gap-6 text-[11px] text-[#999999] ml-6 pb-3 border-b border-[#e5e5e5]">
                 <span class="flex items-center gap-2">
-                    <span class="inline-block w-3 h-3 bg-[#2d2d2d]"></span> Department
+                    <span class="inline-block w-3 h-3 bg-[#2d2d2d]"></span> Central System
                 </span>
                 <span class="flex items-center gap-2">
-                    <span class="inline-block w-3 h-3 bg-white border border-[#d4d4d4]"></span> No Ticket
-                </span>
-                <span class="flex items-center gap-2">
-                    <span class="inline-block w-3 h-3 bg-[#991b1b]"></span> Active Ticket
+                    <span class="inline-block w-3 h-3 bg-[#991b1b]"></span> Active Nodes
                 </span>
             </div>
         </div>
-        <div class="bg-white border border-[#e5e5e5] overflow-x-auto rounded-none">
-            <div id="flow-svg-wrapper" class="min-h-[160px] flex items-center justify-center p-4">
-                <p class="text-[12px] text-[#999999]">Building network map...</p>
+
+        <div class="bg-white border border-[#e5e5e5] p-8 overflow-x-auto">
+            <div id="unified-network-flow" class="w-full min-w-[800px]" data-all-depts='@json($departments)'>
+                {{-- Single Unified SVG will be injected here --}}
             </div>
         </div>
     </div>
@@ -81,11 +79,11 @@
                             <img
                                 src="{{ $actor->profilePhotoUrl() }}"
                                 alt=""
-                                class="h-9 w-9 shrink-0 rounded-full object-cover border border-[#e5e5e5]"
+                                class="h-9 w-9 shrink-0 rounded-none object-cover border border-[#e5e5e5]"
                                 loading="lazy"
                             />
                         @else
-                            <div class="w-9 h-9 shrink-0 rounded-none bg-[#f7f7f7] flex items-center justify-center text-[11px] font-bold text-[#2d2d2d] border border-[#e5e5e5]">
+                            <div class="w-9 h-9 shrink-0 rounded-none bg-[#f7f7f7] flex items-center justify-center text-[11px] font-semibold text-[#2d2d2d] border border-[#e5e5e5]">
                                 {{ $actorInitial }}
                             </div>
                         @endif
@@ -125,128 +123,103 @@
 
     @script
     <script>
-    (function drawFlowChart() {
-        const data = @json($departments);
+    (function initUnifiedNetwork() {
+        const container = document.getElementById('unified-network-flow');
+        if (!container) return;
 
+        const depts = JSON.parse(container.dataset.allDepts);
+        const containerW = container.clientWidth || 1000;
+        
         // Layout constants
-        const NODE_W      = 100;
-        const NODE_H      = 28;
-        const DEPT_Y      = 20;
-        const USER_Y      = 100;
-        const COL_GAP     = 12;
-        const DEPT_GAP    = 40;
-        const PADDING     = 20;
+        const ROW_HEIGHT = 220;
+        const COL_LEFT_X = containerW * 0.25;
+        const COL_RIGHT_X = containerW * 0.75;
+        const ROOT_Y = 40;
+        const START_Y = 120;
+        
+        const rowCount = Math.ceil(depts.length / 2);
+        const totalHeight = START_Y + (rowCount * ROW_HEIGHT) + 40;
+        
+        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="${totalHeight}" viewBox="0 0 ${containerW} ${totalHeight}" style="display:block; background:#fafafa;">`;
 
-        // Build layout
-        let deptBlocks = [];
+        // 1. Draw Root Node (HELPDESK CENTRAL)
+        const rootX = containerW / 2;
+        svg += `
+            <rect x="${rootX - 50}" y="${ROOT_Y - 20}" width="100" height="40" fill="#2d2d2d" stroke="#000" stroke-width="1.5"/>
+            <text x="${rootX}" y="${ROOT_Y + 5}" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold" letter-spacing="1">HELPDESK</text>
+        `;
 
-        data.forEach((dept, di) => {
-            const users = dept.users || [];
-            const deptRow = { type: 'dept', label: dept.name, di };
-            const userRows = users.map(u => ({
-                type: 'user',
-                label: u.name,
-                username: u.username,
-                hasTicket: u.active_tickets_count > 0,
-                ticketCount: u.active_tickets_count,
-                di
-            }));
-            deptBlocks.push({ deptRow, userRows });
-        });
+        // 2. Draw Main Vertical Trunk
+        svg += `<line x1="${rootX}" y1="${ROOT_Y + 20}" x2="${rootX}" y2="${START_Y - 40}" stroke="#2d2d2d" stroke-width="1.5" stroke-dasharray="4,2" opacity="0.3"/>`;
 
-        // Calculate X positions and total SVG width
-        let currentX = PADDING;
-        const blockMeta = deptBlocks.map(block => {
-            const userCount = block.userRows.length;
-            const usersTotalW = userCount > 0 ? (userCount * NODE_W + (userCount - 1) * COL_GAP) : 0;
-            const blockW = Math.max(NODE_W, usersTotalW);
-            const startX = currentX;
-            currentX += blockW + DEPT_GAP;
-            return { startX, blockW, userCount, usersTotalW };
-        });
+        // 3. Draw Departments in 2 Columns
+        depts.forEach((dept, index) => {
+            const isLeft = index % 2 === 0;
+            const rowIndex = Math.floor(index / 2);
+            const deptX = isLeft ? COL_LEFT_X : COL_RIGHT_X;
+            const deptY = START_Y + (rowIndex * ROW_HEIGHT);
 
-        const SVG_W = Math.max(currentX - DEPT_GAP + PADDING, 200);
-        const SVG_H = USER_Y + NODE_H + PADDING * 2;
+            // Connection path from root/center trunk
+            const trunkY = deptY - 40;
+            if (rowIndex === 0) {
+                // First row connects directly from root area
+                svg += `<path d="M ${rootX} ${ROOT_Y + 20} C ${rootX} ${deptY - 60}, ${deptX} ${deptY - 60}, ${deptX} ${deptY - 20}" fill="none" stroke="#2d2d2d" stroke-width="1.2" opacity="0.2"/>`;
+            } else {
+                // Subsequent rows connect from the vertical space above
+                svg += `<line x1="${deptX}" y1="${deptY - ROW_HEIGHT + 20}" x2="${deptX}" y2="${deptY - 20}" stroke="#2d2d2d" stroke-width="1.2" stroke-dasharray="4,4" opacity="0.15"/>`;
+            }
 
-        // Build SVG
-        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}" viewBox="0 0 ${SVG_W} ${SVG_H}" style="font-family:Inter,system-ui,sans-serif;display:block;margin:0 auto;">`;
-
-        deptBlocks.forEach((block, bi) => {
-            const meta = blockMeta[bi];
-            const deptX = meta.startX + meta.blockW / 2 - NODE_W / 2;
-
-            // Dept node
+            // Department Node
             svg += `
-                <rect x="${deptX}" y="${DEPT_Y}" width="${NODE_W}" height="${NODE_H}"
-                    fill="#2d2d2d" stroke="#2d2d2d" stroke-width="1"/>
-                <text x="${deptX + NODE_W/2}" y="${DEPT_Y + 17}" text-anchor="middle"
-                    fill="#ffffff" font-size="9" font-weight="bold" letter-spacing="0.5">${block.deptRow.label.toUpperCase()}</text>`;
+                <rect x="${deptX - 70}" y="${deptY - 20}" width="140" height="36" fill="#f7f7f7" stroke="#e5e5e5" stroke-width="1"/>
+                <text x="${deptX}" y="${deptY - 4}" text-anchor="middle" fill="#2d2d2d" font-size="9" font-weight="bold">${escXml(dept.name.toUpperCase())}</text>
+                <text x="${deptX}" y="${deptY + 8}" text-anchor="middle" fill="#999" font-size="7">${dept.total_users_count} TOTAL STAFF</text>
+            `;
 
-            const deptMidX = deptX + NODE_W / 2;
-            const deptMidY = DEPT_Y + NODE_H;
+            // Active Users Branching
+            const activeUsers = (dept.users || []).sort((a, b) => b.active_tickets_count - a.active_tickets_count);
+            const limit = 3;
+            const displayUsers = activeUsers.slice(0, limit);
+            const hasMore = activeUsers.length > limit;
 
-            // User nodes
-            if (meta.userCount > 0) {
-                let userX = meta.startX + meta.blockW / 2 - meta.usersTotalW / 2;
+            displayUsers.forEach((user, ui) => {
+                const userOffX = isLeft ? -110 : 80;
+                const userX = deptX + userOffX;
+                const userY = deptY + (ui * 35) + 30;
 
-                block.userRows.forEach((user, ui) => {
-                    const fill = user.hasTicket ? '#991b1b' : '#ffffff';
-                    const stroke = user.hasTicket ? '#7f1d1d' : '#d4d4d4';
-                    const strokeW = user.hasTicket ? 2 : 1;
-                    const textColor = user.hasTicket ? '#ffffff' : '#2d2d2d';
+                // Connector to user
+                svg += `<path d="M ${deptX} ${deptY + 16} L ${deptX} ${userY + 12} L ${userX + (isLeft ? 90 : 0)} ${userY + 12}" fill="none" stroke="#991b1b" stroke-width="1" opacity="0.3"/>`;
 
-                    const userMidX = userX + NODE_W / 2;
-                    const userTopY = USER_Y;
+                // User Node
+                const displayName = user.name.split(' ')[0];
+                svg += `
+                    <a href="/admin/tickets?search=${encodeURIComponent(user.username)}" style="cursor:pointer;">
+                        <rect x="${userX}" y="${userY}" width="90" height="24" fill="#991b1b" stroke="#7f1d1d" stroke-width="1"/>
+                        <text x="${userX + 45}" y="${userY + 10}" text-anchor="middle" fill="#fff" font-size="8" font-weight="bold">${escXml(displayName)}</text>
+                        <text x="${userX + 45}" y="${userY + 19}" text-anchor="middle" fill="#ffbbbb" font-size="7">● ${user.active_tickets_count} tickets</text>
+                    </a>
+                `;
+            });
 
-                    // Connector line
-                    const midY = (deptMidY + userTopY) / 2;
-                    svg += `<path d="M ${deptMidX} ${deptMidY} C ${deptMidX} ${midY}, ${userMidX} ${midY}, ${userMidX} ${userTopY}"
-                        fill="none" stroke="${user.hasTicket ? '#991b1b' : '#cccccc'}" stroke-width="${strokeW}"/>`;
+            if (hasMore) {
+                const moreCount = activeUsers.length - limit;
+                const moreY = deptY + (displayUsers.length * 35) + 30;
+                const userOffX = isLeft ? -110 : 80;
+                const userX = deptX + userOffX;
 
-                    // User box
-                    let userBoxSvg = `
-                        <rect x="${userX}" y="${userTopY}" width="${NODE_W}" height="${NODE_H}"
-                            fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"/>`;
-
-                    if (user.hasTicket) {
-                        userBoxSvg += `
-                            <text x="${userMidX}" y="${userTopY + 12}" text-anchor="middle"
-                                fill="${textColor}" font-size="9" font-weight="bold">${escXml(user.label)}</text>
-                            <text x="${userMidX}" y="${userTopY + 22}" text-anchor="middle"
-                                fill="#ffbbbb" font-size="7">● ${user.ticketCount} ticket${user.ticketCount > 1 ? 's' : ''}</text>`;
-                        
-                        svg += `<a href="/admin/tickets?search=${encodeURIComponent(user.username)}" style="cursor:pointer;" class="hover:opacity-90 transition-opacity" title="View tickets for ${escXml(user.label)}">
-                            ${userBoxSvg}
-                        </a>`;
-                    } else {
-                        userBoxSvg += `
-                            <text x="${userMidX}" y="${userTopY + 17}" text-anchor="middle"
-                                fill="${textColor}" font-size="9">${escXml(user.label)}</text>`;
-                        svg += userBoxSvg;
-                    }
-
-                    userX += NODE_W + COL_GAP;
-                });
+                svg += `<path d="M ${deptX} ${deptY + 16} L ${deptX} ${moreY + 12} L ${userX + (isLeft ? 90 : 0)} ${moreY + 12}" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="2,2" opacity="0.3"/>`;
+                svg += `
+                    <rect x="${userX}" y="${moreY}" width="90" height="24" fill="#fff" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="2,2"/>
+                    <text x="${userX + 45}" y="${moreY + 14}" text-anchor="middle" fill="#999" font-size="8" font-weight="bold">+${moreCount} OTHERS</text>
+                `;
             }
         });
 
         svg += '</svg>';
+        container.innerHTML = svg;
 
         function escXml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
-
-        const wrapper = document.getElementById('flow-svg-wrapper');
-        if (wrapper) {
-            if (deptBlocks.length === 0) {
-                wrapper.innerHTML = '<p style="color:#999;font-size:12px;">No departments or users found.</p>';
-            } else {
-                wrapper.innerHTML = svg;
-            }
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
     })();
     </script>

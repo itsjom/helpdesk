@@ -45,11 +45,17 @@ class Dashboard extends Component
             ->take(6)
             ->get();
 
-        // For the Network Chart
-        $departments = Department::with(['users' => function ($uq) {
-            $uq->where('role', 'user')->withCount(['tickets as active_tickets_count' => function ($query) {
-                $query->whereNotIn('status', ['resolved', 'disapproved', 'cancelled']);
-            }]);
+        // For the Network Chart - Get departments with summary stats and ONLY users with active tickets
+        $departments = Department::withCount(['users as total_users_count' => function ($query) {
+            $query->where('role', 'user');
+        }])->with(['users' => function ($uq) {
+            $uq->where('role', 'user')
+               ->whereHas('tickets', function ($q) {
+                   $q->whereNotIn('status', ['resolved', 'disapproved', 'cancelled']);
+               })
+               ->withCount(['tickets as active_tickets_count' => function ($query) {
+                   $query->whereNotIn('status', ['resolved', 'disapproved', 'cancelled']);
+               }]);
         }])->get();
 
         return view('livewire.admin.dashboard', [

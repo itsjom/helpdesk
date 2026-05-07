@@ -10,10 +10,11 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 
 class TicketTable extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     #[Url(history: true)]
     public $search = '';
@@ -27,22 +28,10 @@ class TicketTable extends Component
     #[Url(history: true)]
     public $service_type = '';
 
-    /** Query filter: ticket requester (user id), from Users page link */
-    #[Url(history: true)]
-    public $requester = '';
-
     public $remarks = '';
 
-    public function clearRequesterFilter(): void
-    {
-        $this->requester = '';
-        $this->resetPage();
-    }
-
-    public function updatedRequester(): void
-    {
-        $this->resetPage();
-    }
+    public $pdfFile;
+    public $uploadingTicketId = null;
 
     public function updatedSearch()
     {
@@ -76,10 +65,17 @@ class TicketTable extends Component
             return;
         }
 
-        $ticket->update([
+        $updateData = [
             'status' => $newStatus,
-            'admin_remarks' => $newStatus === 'disapproved' ? $this->remarks : $ticket->admin_remarks,
-        ]);
+            'admin_remarks' => !empty($this->remarks) ? $this->remarks : $ticket->admin_remarks,
+        ];
+
+        // Auto-assign to the admin who approves the ticket
+        if ($newStatus === 'approved') {
+            $updateData['assigned_to'] = auth()->id();
+        }
+
+        $ticket->update($updateData);
 
         TicketLog::create([
             'ticket_id' => $ticket->id,
@@ -93,29 +89,87 @@ class TicketTable extends Component
         session()->flash('success', "Ticket {$ticket->ticket_no} status updated to ".strtoupper($newStatus));
     }
 
-    public function assignTicket($ticketId, $adminId)
+    public function updateRemarks($ticketId)
     {
         $ticket = Ticket::findOrFail($ticketId);
-        $ticket->update(['assigned_to' => $adminId]);
+        
+        $ticket->update([
+            'admin_remarks' => $this->remarks
+        ]);
 
-        session()->flash('success', "Ticket {$ticket->ticket_no} assigned successfully.");
+        TicketLog::create([
+            'ticket_id' => $ticket->id,
+            'changed_by' => auth()->id(),
+            'old_status' => $ticket->status,
+            'new_status' => $ticket->status,
+            'remarks' => "Admin added/updated remarks: " . ($this->remarks ?: 'Cleared remarks'),
+        ]);
+
+        $this->remarks = '';
+        $this->dispatch('notify', message: 'Remarks updated successfully.', type: 'success');
     }
+
+    public function updatePriority($ticketId, $newPriority)
+    {
+        $ticket = Ticket::findOrFail($ticketId);
+        $oldPriority = $ticket->priority;
+
+        $dueDate = match (strtolower($newPriority)) {
+            'high' => $ticket->created_at->addHours(4),
+            'medium' => $ticket->created_at->addDay(),
+            'low' => $ticket->created_at->addDays(3),
+            default => null,
+        };
+
+        $ticket->update([
+            'priority' => $newPriority ?: null,
+            'due_date' => $dueDate,
+        ]);
+
+        TicketLog::create([
+            'ticket_id' => $ticket->id,
+            'changed_by' => auth()->id(),
+            'old_status' => $ticket->status,
+            'new_status' => $ticket->status,
+            'remarks' => "Priority updated from {$oldPriority} to {$newPriority} by Admin.",
+        ]);
+
+        session()->flash('success', "Ticket {$ticket->ticket_no} priority updated to ".strtoupper($newPriority));
+    }
+
+    public function uploadPdf($ticketId)
+    {
+        $this->validate([
+            'pdfFile' => 'required|mimes:pdf|max:10240', // 10MB max
+        ]);
+
+        $ticket = Ticket::findOrFail($ticketId);
+        $path = $this->pdfFile->store('tickets/pdfs', 'public');
+
+        if ($ticket->serviceType?->kind === 'recommendation') {
+            $ticket->recommendation()->updateOrCreate(
+                ['ticket_id' => $ticket->id],
+                ['file_path' => $path, 'specs' => $ticket->description]
+            );
+        } elseif ($ticket->serviceType?->kind === 'disposal') {
+            $ticket->disposal()->updateOrCreate(
+                ['ticket_id' => $ticket->id],
+                ['file_path' => $path, 'cause_of_disposal' => $ticket->description]
+            );
+        }
+
+        $this->updateStatus($ticketId, 'in_progress');
+
+        $this->pdfFile = null;
+        $this->uploadingTicketId = null;
+        $this->dispatch('notify', message: 'PDF uploaded and ticket started.', type: 'success');
+    }
+
 
     #[Layout('layouts.app')]
     public function render()
     {
-        $filterUserId = null;
-        if (filled($this->requester) && is_numeric($this->requester)) {
-            $uid = (int) $this->requester;
-            if ($uid > 0 && User::whereKey($uid)->exists()) {
-                $filterUserId = $uid;
-            }
-        }
-
-        $filterUser = $filterUserId ? User::find($filterUserId) : null;
-
         $query = Ticket::with(['user', 'assignedTo', 'serviceType'])
-            ->when($filterUserId, fn ($q) => $q->where('user_id', $filterUserId))
             ->when($this->search, function ($q) {
                 $q->where(function ($sub) {
                     $sub->where('ticket_no', 'like', "%{$this->search}%")
@@ -128,20 +182,16 @@ class TicketTable extends Component
             ->latest();
 
         $pendingCount = Ticket::query()
-            ->when($filterUserId, fn ($q) => $q->where('user_id', $filterUserId))
             ->where('status', 'pending')
             ->count();
         $activeCount = Ticket::query()
-            ->when($filterUserId, fn ($q) => $q->where('user_id', $filterUserId))
             ->whereIn('status', ['approved', 'in_progress'])
             ->count();
 
         return view('livewire.admin.ticket-table', [
             'tickets' => $query->paginate(10),
-            'admins' => User::where('role', 'admin')->get(),
             'pendingCount' => $pendingCount,
             'activeCount' => $activeCount,
-            'filterUser' => $filterUser,
             'serviceTypeOptions' => ServiceType::ordered()->get(),
         ]);
     }

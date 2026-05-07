@@ -49,11 +49,6 @@ new #[Layout('layouts.guest')] class extends Component
                 <label for="password" class="text-[11px] font-medium text-[#999999] uppercase tracking-widest block">
                     {{ __('Password') }}
                 </label>
-                @if (Route::has('password.request'))
-                    <a class="text-[11px] text-[#999999] hover:text-[#2d2d2d] transition-colors underline underline-offset-4 decoration-[#e5e5e5]" href="{{ route('password.request') }}" wire:navigate>
-                        {{ __('Forgot password?') }}
-                    </a>
-                @endif
             </div>
             <input wire:model="form.password" id="password" type="password" name="password" required autocomplete="current-password"
                 class="input-field w-full">

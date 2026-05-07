@@ -46,9 +46,7 @@ new class extends Component
                 {{ __('Reports') }}
             </x-nav-link>
         @else
-            <div class="px-3 mb-4">
-                <span class="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">My Workspace</span>
-            </div>
+
             <x-nav-link :href="route('user.tickets')" :active="request()->routeIs('user.tickets')" wire:navigate>
                 {{ __('My Tickets') }}
             </x-nav-link>
@@ -63,9 +61,9 @@ new class extends Component
         <div class="flex flex-col space-y-6">
             <div class="px-2 flex items-center gap-3">
                 @if (auth()->user()->profile_photo_path)
-                    <img src="{{ Storage::url(auth()->user()->profile_photo_path) }}" class="h-9 w-9 rounded-full object-cover shrink-0 border border-white/20">
+                    <img src="{{ auth()->user()->profilePhotoUrl() }}" class="h-9 w-9 rounded-none object-cover shrink-0 border border-white/20">
                 @else
-                    <div class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+                    <div class="h-9 w-9 rounded-none bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
                         <span class="text-white text-xs font-bold">{{ substr(auth()->user()->name, 0, 1) }}</span>
                     </div>
                 @endif
@@ -76,10 +74,10 @@ new class extends Component
             </div>
             
             <div class="space-y-1">
-                <a href="{{ route('profile') }}" wire:navigate class="flex items-center px-3 py-2 text-[12px] font-medium text-white/60 hover:bg-white/10 hover:text-white rounded-lg transition-all">
+                <a href="{{ route('profile') }}" wire:navigate class="flex items-center px-3 py-2 text-[12px] font-medium text-white/60 hover:bg-white/10 hover:text-white rounded-none transition-all">
                     {{ __('Profile Settings') }}
                 </a>
-                <button wire:click="logout" class="w-full flex items-center px-3 py-2 text-[12px] font-medium text-white/60 hover:bg-white/10 hover:text-white rounded-lg transition-all">
+                <button wire:click="logout" class="w-full flex items-center px-3 py-2 text-[12px] font-medium text-white/60 hover:bg-white/10 hover:text-white rounded-none transition-all">
                     {{ __('Log Out') }}
                 </button>
             </div>

@@ -21,9 +21,7 @@ class RecommendationForm extends Component
     {
         $this->ticket = Ticket::with(['user', 'serviceType'])->findOrFail($ticketId);
 
-        if (($this->ticket->serviceType?->kind ?? '') !== ServiceType::KIND_RECOMMENDATION) {
-            return redirect()->route('admin.tickets');
-        }
+
 
         if ($this->ticket->recommendation) {
             $this->specs = $this->ticket->recommendation->specs;
