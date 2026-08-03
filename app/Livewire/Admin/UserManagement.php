@@ -307,7 +307,7 @@ class UserManagement extends Component
     public function delete()
     {
         if ($this->deleteType === 'user') {
-            if ($this->deletingId === auth()->id()) {
+            if ($this->deletingId === 1) {
                 session()->flash('error', 'You cannot delete yourself!');
                 $this->dispatch('close-modal', 'delete-confirmation-modal');
 

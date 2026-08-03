@@ -72,14 +72,14 @@ class TicketTable extends Component
 
         // Auto-assign to the admin who approves the ticket
         if ($newStatus === 'approved') {
-            $updateData['assigned_to'] = auth()->id();
+            $updateData['assigned_to'] = 1;
         }
 
         $ticket->update($updateData);
 
         TicketLog::create([
             'ticket_id' => $ticket->id,
-            'changed_by' => auth()->id(),
+            'changed_by' => 1,
             'old_status' => $oldStatus,
             'new_status' => $newStatus,
             'remarks' => $this->remarks ?: 'Status changed to '.str_replace('_', ' ', $newStatus).' by Admin.',
@@ -99,7 +99,7 @@ class TicketTable extends Component
 
         TicketLog::create([
             'ticket_id' => $ticket->id,
-            'changed_by' => auth()->id(),
+            'changed_by' => 1,
             'old_status' => $ticket->status,
             'new_status' => $ticket->status,
             'remarks' => "Admin added/updated remarks: " . ($this->remarks ?: 'Cleared remarks'),
@@ -128,7 +128,7 @@ class TicketTable extends Component
 
         TicketLog::create([
             'ticket_id' => $ticket->id,
-            'changed_by' => auth()->id(),
+            'changed_by' => 1,
             'old_status' => $ticket->status,
             'new_status' => $ticket->status,
             'remarks' => "Priority updated from {$oldPriority} to {$newPriority} by Admin.",

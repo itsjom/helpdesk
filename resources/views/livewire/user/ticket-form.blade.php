@@ -29,7 +29,7 @@
 
                 <!-- Actions -->
                 <div class="pt-10 flex items-center justify-end gap-6 border-t border-[#f0f0f0]">
-                    <a href="{{ auth()->user()->role === 'admin' ? route('admin.tickets') : route('user.tickets') }}" wire:navigate class="text-[13px] font-medium text-[#999999] hover:text-[#2d2d2d] transition-colors">
+                    <a href="{{ auth()->user()?->role === 'admin' ? route('admin.tickets') : route('user.tickets') }}" wire:navigate class="text-[13px] font-medium text-[#999999] hover:text-[#2d2d2d] transition-colors">
                         Cancel
                     </a>
                     <button type="submit" wire:loading.attr="disabled" class="btn-primary flex items-center gap-3">

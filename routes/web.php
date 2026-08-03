@@ -12,25 +12,15 @@ use App\Livewire\User\TicketForm;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    $admin = \App\Models\User::where('role', 'admin')->first();
-    if ($admin) {
-        \Illuminate\Support\Facades\Auth::login($admin);
-        return redirect()->route('admin.dashboard');
-    }
-    abort(403, 'No admin user found in the system.');
+    return redirect()->route('admin.dashboard');
 });
 
 Route::get('/bypass-user', function () {
-    $user = \App\Models\User::where('role', 'user')->first();
-    if ($user) {
-        \Illuminate\Support\Facades\Auth::login($user);
-        return redirect()->route('user.tickets');
-    }
-    abort(403, 'No standard user found in the system.');
+    return redirect()->route('user.tickets');
 });
 
 // Admin Routes
-Route::middleware(['auth', 'role:admin', 'nocache'])->group(function () {
+Route::middleware(['nocache'])->group(function () {
     Route::get('/admin/dashboard', Dashboard::class)->name('admin.dashboard');
     Route::get('/admin/tickets', TicketTable::class)->name('admin.tickets');
     Route::get('/admin/tickets/create', \App\Livewire\User\TicketForm::class)->name('admin.tickets.create');
@@ -42,12 +32,10 @@ Route::middleware(['auth', 'role:admin', 'nocache'])->group(function () {
 });
 
 // User Routes
-Route::middleware(['auth', 'role:user', 'nocache'])->group(function () {
+Route::middleware(['nocache'])->group(function () {
     Route::get('/tickets', MyTickets::class)->name('user.tickets');
     Route::get('/tickets/create', TicketForm::class)->name('user.tickets.create');
 });
 
-Route::view('profile', 'profile')
-    ->middleware(['auth', 'nocache'])
-    ->name('profile');
+
 
