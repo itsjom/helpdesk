@@ -11,7 +11,9 @@ use App\Livewire\User\MyTickets;
 use App\Livewire\User\TicketForm;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/login');
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
 // Admin Routes
 Route::middleware(['auth', 'role:admin', 'nocache'])->group(function () {

@@ -30,7 +30,7 @@ class TicketTable extends Component
 
     public $remarks = '';
 
-    public $pdfFile;
+    public $attachedFile;
     public $uploadingTicketId = null;
 
     public function updatedSearch()
@@ -137,14 +137,14 @@ class TicketTable extends Component
         session()->flash('success', "Ticket {$ticket->ticket_no} priority updated to ".strtoupper($newPriority));
     }
 
-    public function uploadPdf($ticketId)
+    public function uploadFile($ticketId)
     {
         $this->validate([
-            'pdfFile' => 'required|mimes:pdf|max:10240', // 10MB max
+            'attachedFile' => 'required|mimes:pdf,doc,docx,png|max:10240', // 10MB max
         ]);
 
         $ticket = Ticket::findOrFail($ticketId);
-        $path = $this->pdfFile->store('tickets/pdfs', 'public');
+        $path = $this->attachedFile->store('tickets/files', 'public');
 
         if ($ticket->serviceType?->kind === 'recommendation') {
             $ticket->recommendation()->updateOrCreate(
@@ -160,9 +160,9 @@ class TicketTable extends Component
 
         $this->updateStatus($ticketId, 'in_progress');
 
-        $this->pdfFile = null;
+        $this->attachedFile = null;
         $this->uploadingTicketId = null;
-        $this->dispatch('notify', message: 'PDF uploaded and ticket started.', type: 'success');
+        $this->dispatch('notify', message: 'File uploaded and ticket started.', type: 'success');
     }
 
 

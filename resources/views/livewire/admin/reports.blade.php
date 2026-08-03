@@ -2,12 +2,22 @@
     <div class="flex justify-between items-center mb-12">
         <h1 class="text-[24px] font-semibold text-[#2d2d2d] uppercase tracking-widest">Reports</h1>
         <div class="flex items-center gap-4">
-            <select wire:model.live="period" class="input-field text-[13px] py-1.5 px-3">
-                <option value="day">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="year">This Year</option>
+            <select wire:model.live="filterType" class="input-field text-[13px] py-1.5 pl-3 pr-8">
+                <option value="day">Day</option>
+                <option value="week">Week</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
             </select>
+            
+            @if($filterType === 'day')
+                <input type="date" wire:model.live="filterValue" class="input-field text-[13px] py-1.5 px-3">
+            @elseif($filterType === 'week')
+                <input type="week" wire:model.live="filterValue" class="input-field text-[13px] py-1.5 px-3">
+            @elseif($filterType === 'month')
+                <input type="month" wire:model.live="filterValue" class="input-field text-[13px] py-1.5 px-3">
+            @elseif($filterType === 'year')
+                <input type="number" wire:model.live="filterValue" min="2000" max="2100" class="input-field text-[13px] py-1.5 px-3 w-24">
+            @endif
             <button wire:click="downloadPdf" class="btn-primary flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 Export PDF
@@ -18,7 +28,7 @@
     <div class="bg-white border border-[#e5e5e5] p-8 rounded-none mb-12">
         <div class="mb-8">
             <h3 class="text-[14px] font-semibold text-[#2d2d2d] uppercase tracking-widest border-b border-[#e5e5e5] pb-4 mb-6">
-                Overview ({{ ucfirst($period) }})
+                Overview ({{ ucfirst($filterType) }} {{ $filterValue ? '- ' . $filterValue : '' }})
             </h3>
             
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">

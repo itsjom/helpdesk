@@ -12,26 +12,40 @@ class ReportController extends Controller
 {
     public function exportPdf(Request $request)
     {
-        $period = $request->query('period', 'month');
+        $filterType = $request->query('filterType', 'month');
+        $filterValue = $request->query('filterValue', date('Y-m'));
         $query = Ticket::query();
 
         $title = 'Report Overview';
-        if ($period === 'day') {
-            $query->whereDate('created_at', Carbon::today());
-            $title = 'Daily Report Overview ('.Carbon::today()->format('Y-m-d').')';
-        } elseif ($period === 'week') {
-            $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-            $title = 'Weekly Report Overview ('.Carbon::now()->startOfWeek()->format('M d').' - '.Carbon::now()->endOfWeek()->format('M d, Y').')';
-        } elseif ($period === 'month') {
-            $query->whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year);
-            $title = 'Monthly Report Overview ('.Carbon::now()->format('F Y').')';
-        } elseif ($period === 'year') {
-            $query->whereYear('created_at', Carbon::now()->year);
-            $title = 'Yearly Report Overview ('.Carbon::now()->year.')';
+        if (!empty($filterValue)) {
+            if ($filterType === 'day') {
+                try {
+                    $query->whereDate('created_at', Carbon::parse($filterValue));
+                    $title = 'Daily Report Overview ('.Carbon::parse($filterValue)->format('M d, Y').')';
+                } catch (\Exception $e) {}
+            } elseif ($filterType === 'week') {
+                $parts = explode('-W', $filterValue);
+                if (count($parts) === 2) {
+                    $start = Carbon::now()->setISODate($parts[0], $parts[1])->startOfWeek();
+                    $end = Carbon::now()->setISODate($parts[0], $parts[1])->endOfWeek();
+                    $query->whereBetween('created_at', [$start, $end]);
+                    $title = 'Weekly Report Overview ('.$start->format('M d').' - '.$end->format('M d, Y').')';
+                }
+            } elseif ($filterType === 'month') {
+                try {
+                    $date = Carbon::createFromFormat('Y-m', $filterValue);
+                    $query->whereMonth('created_at', $date->month)
+                        ->whereYear('created_at', $date->year);
+                    $title = 'Monthly Report Overview ('.$date->format('F Y').')';
+                } catch (\Exception $e) {}
+            } elseif ($filterType === 'year') {
+                $query->whereYear('created_at', $filterValue);
+                $title = 'Yearly Report Overview ('.$filterValue.')';
+            }
         }
 
         $tickets = $query->with('serviceType')->get();
+        $resolvedTickets = $tickets->where('status', 'resolved');
 
         $byCode = $tickets->groupBy('service_type')->map->count();
         $byService = [];
@@ -53,8 +67,8 @@ class ReportController extends Controller
             'by_service' => $byService,
         ];
 
-        $pdf = Pdf::loadView('reports.pdf', compact('stats', 'title', 'tickets'));
+        $pdf = Pdf::loadView('reports.pdf', compact('stats', 'title', 'resolvedTickets'))->setPaper('a4', 'landscape');
 
-        return $pdf->download('it-helpdesk-report-'.$period.'.pdf');
+        return $pdf->download('it-helpdesk-report-'.$filterType.'-'.$filterValue.'.pdf');
     }
 }

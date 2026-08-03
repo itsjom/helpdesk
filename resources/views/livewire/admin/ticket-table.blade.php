@@ -148,7 +148,7 @@
                                                 @if(in_array($ticket->serviceType?->kind, ['recommendation', 'disposal']))
                                                     <button wire:click="$set('uploadingTicketId', {{ $ticket->id }})" 
                                                         class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-red-600 text-white border border-red-600 hover:bg-red-700 transition-all">
-                                                        PDF Upload
+                                                        File Upload
                                                     </button>
                                                 @else
                                                     <button wire:click="updateStatus({{ $ticket->id }}, 'in_progress')" 
@@ -174,18 +174,18 @@
 
                                     @if($uploadingTicketId === $ticket->id)
                                         <div class="mt-4 p-6 bg-red-50 border border-red-100 animate-fade-in text-left">
-                                            <label class="text-[10px] font-bold text-red-800 uppercase tracking-widest mb-3 block">Upload {{ ucfirst($ticket->serviceType?->kind) }} PDF</label>
+                                            <label class="text-[10px] font-bold text-red-800 uppercase tracking-widest mb-3 block">Upload {{ ucfirst($ticket->serviceType?->kind) }} File</label>
                                             <div class="flex flex-col gap-4">
-                                                <input type="file" wire:model="pdfFile" class="text-[12px] text-[#555555] file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-[11px] file:font-bold file:bg-red-600 file:text-white hover:file:bg-red-700 transition-all">
+                                                <input type="file" wire:model="attachedFile" accept=".pdf,.doc,.docx,.png" class="text-[12px] text-[#555555] file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-[11px] file:font-bold file:bg-red-600 file:text-white hover:file:bg-red-700 transition-all">
                                                 <div class="flex items-center gap-4">
-                                                    <button wire:click="uploadPdf({{ $ticket->id }})" wire:loading.attr="disabled" class="bg-[#2d2d2d] text-white text-[11px] font-bold uppercase tracking-widest px-4 py-2 hover:bg-black transition-all">
+                                                    <button wire:click="uploadFile({{ $ticket->id }})" wire:loading.attr="disabled" class="bg-[#2d2d2d] text-white text-[11px] font-bold uppercase tracking-widest px-4 py-2 hover:bg-black transition-all">
                                                         Save & Start
                                                     </button>
                                                     <button wire:click="$set('uploadingTicketId', null)" class="text-[11px] font-bold text-[#999999] uppercase tracking-widest">Cancel</button>
                                                 </div>
                                             </div>
-                                            <div wire:loading wire:target="pdfFile" class="mt-3 text-[10px] text-red-600 font-medium animate-pulse">Uploading file... please wait</div>
-                                            <x-input-error :messages="$errors->get('pdfFile')" class="mt-2" />
+                                            <div wire:loading wire:target="attachedFile" class="mt-3 text-[10px] text-red-600 font-medium animate-pulse">Uploading file... please wait</div>
+                                            <x-input-error :messages="$errors->get('attachedFile')" class="mt-2" />
                                         </div>
                                     @endif
 
@@ -276,7 +276,7 @@
                         <a href="{{ Storage::url($pdfPath) }}" target="_blank" class="flex items-center gap-3 p-4 bg-red-50 border border-red-100 text-red-700 hover:bg-red-100 transition-all group">
                             <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9h1.5m1.5 0H13m-3 3h3m-3 3h3" /></svg>
                             <div class="flex flex-col">
-                                <span class="text-[13px] font-bold uppercase tracking-wider">Resolution_PDF.pdf</span>
+                                <span class="text-[13px] font-bold uppercase tracking-wider">Attached File</span>
                                 <span class="text-[10px] text-red-500 font-medium">Click to view or download</span>
                             </div>
                         </a>

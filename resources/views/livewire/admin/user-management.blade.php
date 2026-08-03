@@ -25,7 +25,7 @@
                     New User
                 </button>
             @elseif($view === 'departments')
-                <button wire:click="$set('isEditingDept', false); $set('dept_name', ''); $dispatch('open-modal', 'dept-modal')" class="btn-primary flex items-center gap-2">
+                <button wire:click="openCreateDeptModal" class="btn-primary flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     New Department
                 </button>

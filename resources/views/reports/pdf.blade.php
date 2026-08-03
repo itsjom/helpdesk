@@ -23,86 +23,31 @@
 
     <h1>{{ $title }}</h1>
 
-    <table class="grid">
-        <tr>
-            <td>
-                <div class="label">Total</div>
-                <div class="value">{{ $stats['total'] }}</div>
-            </td>
-            <td class="dark">
-                <div class="label">Pending</div>
-                <div class="value">{{ $stats['pending'] }}</div>
-            </td>
-            <td>
-                <div class="label">OnQueue</div>
-                <div class="value">{{ $stats['approved'] }}</div>
-            </td>
-            <td>
-                <div class="label">In Progress</div>
-                <div class="value">{{ $stats['in_progress'] }}</div>
-            </td>
-            <td>
-                <div class="label">Resolved</div>
-                <div class="value">{{ $stats['resolved'] }}</div>
-            </td>
-        </tr>
-    </table>
-
-    <table style="width: 100%;">
-        <tr>
-            <td style="width: 50%; vertical-align: top; padding-right: 10px;">
-                <h2>By Service Type</h2>
-                <table class="list">
-                    @forelse($stats['by_service'] as $row)
-                    <tr>
-                        <td>{{ $row['label'] }}</td>
-                        <td style="text-align: right; font-weight: bold;">{{ $row['count'] }}</td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="2" style="color: #999; font-style: italic;">No data available.</td></tr>
-                    @endforelse
-                </table>
-            </td>
-            <td style="width: 50%; vertical-align: top; padding-left: 10px;">
-                <h2>Other Statuses</h2>
-                <table class="list">
-                    <tr>
-                        <td>Disapproved</td>
-                        <td style="text-align: right; font-weight: bold;">{{ $stats['disapproved'] }}</td>
-                    </tr>
-                    <tr>
-                        <td>Cancelled</td>
-                        <td style="text-align: right; font-weight: bold;">{{ $stats['cancelled'] }}</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-
-    <h2>Recent Tickets (Selected Period)</h2>
+    <h2>Tickets</h2>
     <table class="list">
         <thead>
             <tr>
                 <th>Ticket No</th>
                 <th>Date</th>
                 <th>Service Type</th>
-                <th>Status</th>
+                <th>Requirement Description</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach($tickets->take(20) as $ticket)
+            @forelse($resolvedTickets as $ticket)
             <tr>
                 <td style="font-weight: bold;">{{ $ticket->ticket_no }}</td>
                 <td>{{ $ticket->created_at->format('Y-m-d') }}</td>
                 <td>{{ $ticket->serviceType?->name ?? str_replace('_', ' ', $ticket->service_type) }}</td>
+                <td>{{ $ticket->description }}</td>
                 <td>{{ \App\Models\TicketLog::formatStatusLabel($ticket->status) }}</td>
             </tr>
-            @endforeach
-            @if($tickets->count() > 20)
+            @empty
             <tr>
-                <td colspan="4" style="text-align: center; color: #999; font-style: italic;">... and {{ $tickets->count() - 20 }} more tickets not shown.</td>
+                <td colspan="5" style="text-align: center; color: #999; font-style: italic;">No tickets found for this period.</td>
             </tr>
-            @endif
+            @endforelse
         </tbody>
     </table>
 

@@ -10,21 +10,50 @@ use Livewire\Component;
 
 class Reports extends Component
 {
-    public $period = 'month'; // day, week, month, year
+    public $filterType = 'month'; // day, week, month, year
+    public $filterValue = '';
+
+    public function mount()
+    {
+        $this->filterValue = date('Y-m');
+    }
+
+    public function updatedFilterType()
+    {
+        $this->filterValue = match($this->filterType) {
+            'day' => date('Y-m-d'),
+            'week' => date('Y-\WW'),
+            'month' => date('Y-m'),
+            'year' => date('Y'),
+            default => date('Y-m'),
+        };
+    }
 
     public function getStats()
     {
         $query = Ticket::query();
 
-        if ($this->period === 'day') {
-            $query->whereDate('created_at', Carbon::today());
-        } elseif ($this->period === 'week') {
-            $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-        } elseif ($this->period === 'month') {
-            $query->whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year);
-        } elseif ($this->period === 'year') {
-            $query->whereYear('created_at', Carbon::now()->year);
+        if (!empty($this->filterValue)) {
+            if ($this->filterType === 'day') {
+                try {
+                    $query->whereDate('created_at', Carbon::parse($this->filterValue));
+                } catch (\Exception $e) {}
+            } elseif ($this->filterType === 'week') {
+                $parts = explode('-W', $this->filterValue);
+                if (count($parts) === 2) {
+                    $start = Carbon::now()->setISODate($parts[0], $parts[1])->startOfWeek();
+                    $end = Carbon::now()->setISODate($parts[0], $parts[1])->endOfWeek();
+                    $query->whereBetween('created_at', [$start, $end]);
+                }
+            } elseif ($this->filterType === 'month') {
+                try {
+                    $date = Carbon::createFromFormat('Y-m', $this->filterValue);
+                    $query->whereMonth('created_at', $date->month)
+                        ->whereYear('created_at', $date->year);
+                } catch (\Exception $e) {}
+            } elseif ($this->filterType === 'year') {
+                $query->whereYear('created_at', $this->filterValue);
+            }
         }
 
         $tickets = $query->get();
@@ -52,7 +81,7 @@ class Reports extends Component
 
     public function downloadPdf()
     {
-        return redirect()->route('admin.reports.pdf', ['period' => $this->period]);
+        return redirect()->route('admin.reports.pdf', ['filterType' => $this->filterType, 'filterValue' => $this->filterValue]);
     }
 
     #[Layout('layouts.app')]

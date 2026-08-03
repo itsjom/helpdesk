@@ -268,9 +268,15 @@ class UserManagement extends Component
 
     public function confirmUserDeletion($id)
     {
+        $user = User::findOrFail($id);
+
+        if ($user->username === 'admin') {
+            $this->dispatch('notify', message: 'You cannot delete the System Administrator!', type: 'error');
+            return;
+        }
+
         $this->deleteType = 'user';
         $this->deletingId = $id;
-        $user = User::findOrFail($id);
         $this->deletingName = $user->name;
         $this->dispatch('open-modal', 'delete-confirmation-modal');
     }
@@ -307,7 +313,15 @@ class UserManagement extends Component
 
                 return;
             }
-            User::findOrFail($this->deletingId)->delete();
+
+            $user = User::findOrFail($this->deletingId);
+            if ($user->username === 'admin') {
+                session()->flash('error', 'You cannot delete the System Administrator!');
+                $this->dispatch('close-modal', 'delete-confirmation-modal');
+                return;
+            }
+
+            $user->delete();
             session()->flash('success', 'User deleted successfully!');
         } elseif ($this->deleteType === 'department') {
             $dept = Department::findOrFail($this->deletingId);
@@ -349,6 +363,13 @@ class UserManagement extends Component
         $this->resetFields();
         $this->isEditing = false;
         $this->dispatch('open-modal', 'user-modal');
+    }
+
+    public function openCreateDeptModal()
+    {
+        $this->resetFields();
+        $this->isEditingDept = false;
+        $this->dispatch('open-modal', 'dept-modal');
     }
 
     #[Layout('layouts.app')]
