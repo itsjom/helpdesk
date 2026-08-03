@@ -12,25 +12,21 @@ use App\Livewire\User\TicketForm;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    if (app()->environment('local')) {
-        $admin = \App\Models\User::where('role', 'admin')->first();
-        if ($admin) {
-            \Illuminate\Support\Facades\Auth::login($admin);
-            return redirect()->route('admin.dashboard');
-        }
+    $admin = \App\Models\User::where('role', 'admin')->first();
+    if ($admin) {
+        \Illuminate\Support\Facades\Auth::login($admin);
+        return redirect()->route('admin.dashboard');
     }
-    return redirect()->route('login');
+    abort(403, 'No admin user found in the system.');
 });
 
 Route::get('/bypass-user', function () {
-    if (app()->environment('local')) {
-        $user = \App\Models\User::where('role', 'user')->first();
-        if ($user) {
-            \Illuminate\Support\Facades\Auth::login($user);
-            return redirect()->route('user.tickets');
-        }
+    $user = \App\Models\User::where('role', 'user')->first();
+    if ($user) {
+        \Illuminate\Support\Facades\Auth::login($user);
+        return redirect()->route('user.tickets');
     }
-    return redirect()->route('login');
+    abort(403, 'No standard user found in the system.');
 });
 
 // Admin Routes
@@ -55,4 +51,3 @@ Route::view('profile', 'profile')
     ->middleware(['auth', 'nocache'])
     ->name('profile');
 
-require __DIR__ . '/auth.php';

@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Actions\Logout;
+
 use Livewire\Volt\Component;
 
 new class extends Component
@@ -11,15 +11,7 @@ new class extends Component
         // Trigger re-render to update the displayed profile photo
     }
 
-    /**
-     * Log the current user out of the application.
-     */
-    public function logout(Logout $logout): void
-    {
-        $logout();
 
-        $this->redirect('/', navigate: true);
-    }
 }; ?>
 
 <aside class="w-[220px] bg-[#2d2d2d] h-screen flex flex-col sticky top-0 shadow-lg shadow-black/10">
@@ -80,9 +72,7 @@ new class extends Component
                 <a href="{{ route('profile') }}" wire:navigate class="flex items-center px-3 py-2 text-[12px] font-medium text-white/60 hover:bg-white/10 hover:text-white rounded-none transition-all">
                     {{ __('Profile Settings') }}
                 </a>
-                <button wire:click="logout" class="w-full flex items-center px-3 py-2 text-[12px] font-medium text-white/60 hover:bg-white/10 hover:text-white rounded-none transition-all">
-                    {{ __('Log Out') }}
-                </button>
+
             </div>
         </div>
     </div>
