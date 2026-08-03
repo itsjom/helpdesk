@@ -37,6 +37,7 @@ Route::get('/bypass-user', function () {
 Route::middleware(['auth', 'role:admin', 'nocache'])->group(function () {
     Route::get('/admin/dashboard', Dashboard::class)->name('admin.dashboard');
     Route::get('/admin/tickets', TicketTable::class)->name('admin.tickets');
+    Route::get('/admin/tickets/create', \App\Livewire\User\TicketForm::class)->name('admin.tickets.create');
     Route::get('/admin/tickets/{ticketId}/recommendation', RecommendationForm::class)->name('admin.tickets.recommendation');
     Route::get('/admin/tickets/{ticketId}/disposal', DisposalForm::class)->name('admin.tickets.disposal');
     Route::get('/admin/users', UserManagement::class)->name('admin.users');

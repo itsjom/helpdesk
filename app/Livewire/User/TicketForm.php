@@ -49,7 +49,8 @@ class TicketForm extends Component
 
         session()->flash('success', 'Ticket submitted successfully!');
 
-        return $this->redirect(route('user.tickets'), navigate: true);
+        $redirectRoute = auth()->user()->role === 'admin' ? route('admin.tickets') : route('user.tickets');
+        return $this->redirect($redirectRoute, navigate: true);
     }
 
     #[Layout('layouts.app')]
