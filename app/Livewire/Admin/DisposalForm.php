@@ -33,28 +33,33 @@ class DisposalForm extends Component
             'cause' => 'required|min:10',
         ]);
 
-        Disposal::updateOrCreate(
-            ['ticket_id' => $this->ticket->id],
-            [
-                'cause_of_disposal' => $this->cause,
-                'admin_name' => auth()->user()->username,
-            ]
-        );
+        try {
+            Disposal::updateOrCreate(
+                ['ticket_id' => $this->ticket->id],
+                [
+                    'cause_of_disposal' => $this->cause,
+                    'admin_name' => auth()->user() ? auth()->user()->username : 'System Admin',
+                ]
+            );
 
-        $oldStatus = $this->ticket->status;
-        $this->ticket->update(['status' => 'resolved']);
+            $oldStatus = $this->ticket->status;
+            $this->ticket->update(['status' => 'resolved']);
 
-        TicketLog::create([
-            'ticket_id' => $this->ticket->id,
-            'changed_by' => auth()->id(),
-            'old_status' => $oldStatus,
-            'new_status' => 'resolved',
-            'remarks' => 'Disposal processed: '.Str::limit($this->cause, 50),
-        ]);
+            TicketLog::create([
+                'ticket_id' => $this->ticket->id,
+                'changed_by' => auth()->id() ?? 1,
+                'old_status' => $oldStatus,
+                'new_status' => 'resolved',
+                'remarks' => 'Disposal processed: '.Str::limit($this->cause, 50),
+            ]);
 
-        session()->flash('success', 'Disposal processed and ticket resolved!');
+            session()->flash('success', 'Disposal processed and ticket resolved!');
 
-        return $this->redirect(route('admin.tickets'), navigate: true);
+            return $this->redirect(route('admin.tickets'), navigate: true);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Disposal processing failed: ' . $e->getMessage());
+            session()->flash('error', 'An error occurred while processing the disposal: ' . $e->getMessage());
+        }
     }
 
     #[Layout('layouts.app')]

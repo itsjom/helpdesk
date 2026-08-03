@@ -31,26 +31,31 @@ class TicketForm extends Component
     {
         $this->validate();
 
-        $ticket = Ticket::create([
-            'user_id' => auth()->id(),
-            'service_type' => $this->service_type,
-            'description' => $this->description,
-        ]);
+        try {
+            $ticket = Ticket::create([
+                'user_id' => auth()->id(),
+                'service_type' => $this->service_type,
+                'description' => $this->description,
+            ]);
 
-        // Log the creation
-        TicketLog::create([
-            'ticket_id' => $ticket->id,
-            'changed_by' => auth()->id(),
-            'old_status' => null,
-            'new_status' => 'pending',
-            'remarks' => 'Ticket submitted by user.',
-            'created_at' => now(),
-        ]);
+            // Log the creation
+            TicketLog::create([
+                'ticket_id' => $ticket->id,
+                'changed_by' => auth()->id(),
+                'old_status' => null,
+                'new_status' => 'pending',
+                'remarks' => 'Ticket submitted by user.',
+                'created_at' => now(),
+            ]);
 
-        session()->flash('success', 'Ticket submitted successfully!');
+            session()->flash('success', 'Ticket submitted successfully!');
 
-        $redirectRoute = auth()->user()->role === 'admin' ? route('admin.tickets') : route('user.tickets');
-        return $this->redirect($redirectRoute, navigate: true);
+            $redirectRoute = auth()->user()->role === 'admin' ? route('admin.tickets') : route('user.tickets');
+            return $this->redirect($redirectRoute, navigate: true);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Ticket creation failed: ' . $e->getMessage());
+            session()->flash('error', 'An error occurred while submitting the ticket. Please try again later.');
+        }
     }
 
     #[Layout('layouts.app')]
