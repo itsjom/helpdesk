@@ -1,6 +1,9 @@
 <div>
-    <div class="mb-12">
+    <div class="mb-12 flex items-center justify-between">
         <h1 class="text-[24px] font-semibold text-[#2d2d2d] uppercase tracking-widest">Dashboard</h1>
+        <a href="{{ route('admin.tickets.create') }}" wire:navigate class="btn-primary !bg-[#2563eb] hover:!bg-[#1d4ed8]">
+            Request Ticket
+        </a>
     </div>
 
     <!-- Stats Grid -->
