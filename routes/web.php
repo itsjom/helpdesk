@@ -27,6 +27,7 @@ Route::middleware(['nocache'])->group(function () {
     Route::get('/admin/tickets/{ticketId}/recommendation', RecommendationForm::class)->name('admin.tickets.recommendation');
     Route::get('/admin/tickets/{ticketId}/disposal', DisposalForm::class)->name('admin.tickets.disposal');
     Route::get('/admin/users', UserManagement::class)->name('admin.users');
+    Route::get('/admin/faqs', \App\Livewire\Admin\FaqManager::class)->name('admin.faqs');
     Route::get('/admin/reports', Reports::class)->name('admin.reports');
     Route::get('/admin/reports/pdf', [ReportController::class, 'exportPdf'])->name('admin.reports.pdf');
 });
