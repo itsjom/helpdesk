@@ -47,7 +47,7 @@ class DisposalForm extends Component
 
             TicketLog::create([
                 'ticket_id' => $this->ticket->id,
-                'changed_by' => 1,
+                'changed_by' => auth()->id(),
                 'old_status' => $oldStatus,
                 'new_status' => 'resolved',
                 'remarks' => 'Disposal processed: '.Str::limit($this->cause, 50),

@@ -12,18 +12,27 @@ use App\Livewire\User\TicketForm;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('admin.dashboard');
+    if (auth()->check()) {
+        if (auth()->user()->hasRole('admin')) {
+            return redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('user.tickets');
+    }
+    return redirect()->route('login');
 });
 
-Route::get('/bypass-user', function () {
+Route::get('/dashboard', function () {
+    if (auth()->user()->hasRole('admin')) {
+        return redirect()->route('admin.dashboard');
+    }
     return redirect()->route('user.tickets');
-});
+})->middleware(['auth', 'nocache'])->name('dashboard');
 
 // Admin Routes
-Route::middleware(['nocache'])->group(function () {
+Route::middleware(['auth', 'role:admin', 'nocache'])->group(function () {
     Route::get('/admin/dashboard', Dashboard::class)->name('admin.dashboard');
     Route::get('/admin/tickets', TicketTable::class)->name('admin.tickets');
-    Route::get('/admin/tickets/create', \App\Livewire\User\TicketForm::class)->name('admin.tickets.create');
+    
     Route::get('/admin/tickets/{ticketId}/recommendation', RecommendationForm::class)->name('admin.tickets.recommendation');
     Route::get('/admin/tickets/{ticketId}/disposal', DisposalForm::class)->name('admin.tickets.disposal');
     Route::get('/admin/users', UserManagement::class)->name('admin.users');
@@ -32,11 +41,14 @@ Route::middleware(['nocache'])->group(function () {
     Route::get('/admin/reports/pdf', [ReportController::class, 'exportPdf'])->name('admin.reports.pdf');
 });
 
-// User Routes
-Route::middleware(['nocache'])->group(function () {
+// User & Admin Shared Routes
+Route::middleware(['auth', 'role:user|admin', 'nocache'])->group(function () {
     Route::get('/tickets', MyTickets::class)->name('user.tickets');
     Route::get('/tickets/create', TicketForm::class)->name('user.tickets.create');
 });
 
+Route::view('profile', 'profile')
+    ->middleware(['auth', 'nocache'])
+    ->name('profile');
 
-
+require __DIR__.'/auth.php';

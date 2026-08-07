@@ -67,7 +67,7 @@ class RecommendationForm extends Component
         // 5. Log activity
         TicketLog::create([
             'ticket_id' => $this->ticket->id,
-            'changed_by' => 1,
+            'changed_by' => auth()->id(),
             'old_status' => $oldStatus,
             'new_status' => 'resolved',
             'remarks' => 'Hardware recommendation generated and PDF saved.',

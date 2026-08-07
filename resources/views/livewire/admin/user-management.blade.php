@@ -11,6 +11,10 @@
                     class="px-4 py-1.5 text-[12px] font-semibold uppercase tracking-wider {{ $view === 'departments' ? 'bg-[#2d2d2d] text-white' : 'text-[#999999] hover:text-[#2d2d2d]' }} transition-all">
                     Departments
                 </button>
+                <button wire:click="switchView('roles')" 
+                    class="px-4 py-1.5 text-[12px] font-semibold uppercase tracking-wider {{ $view === 'roles' ? 'bg-[#2d2d2d] text-white' : 'text-[#999999] hover:text-[#2d2d2d]' }} transition-all">
+                    Roles
+                </button>
                 <button wire:click="switchView('service_types')" 
                     class="px-4 py-1.5 text-[12px] font-semibold uppercase tracking-wider {{ $view === 'service_types' ? 'bg-[#2d2d2d] text-white' : 'text-[#999999] hover:text-[#2d2d2d]' }} transition-all">
                     Service types
@@ -28,6 +32,11 @@
                 <button wire:click="openCreateDeptModal" class="btn-primary flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     New Department
+                </button>
+            @elseif($view === 'roles')
+                <button wire:click="openRoleModal" class="btn-primary flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    New Role
                 </button>
             @else
                 <button wire:click="openServiceTypeModal" type="button" class="btn-primary flex items-center gap-2">
@@ -181,6 +190,55 @@
             <div class="p-6 border-t border-[#e5e5e5]">
                 {{ $departments->links() }}
             </div>
+        @elseif($view === 'roles')
+            <table class="w-full text-left">
+                <thead class="bg-[#f7f7f7] border-b border-[#e5e5e5]">
+                    <tr>
+                        <th class="px-6 py-3 text-[11px] font-medium text-[#999999] uppercase tracking-widest">Role Name</th>
+                        <th class="px-6 py-3 text-[11px] font-medium text-[#999999] uppercase tracking-widest">Permissions</th>
+                        <th class="px-6 py-3 text-[11px] font-medium text-[#999999] uppercase tracking-widest text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#f0f0f0]">
+                    @forelse($roles as $rl)
+                        <tr class="hover:bg-[#fafafa] transition-colors">
+                            <td class="px-6 py-5 text-[13px] font-semibold text-[#2d2d2d] uppercase">{{ $rl->name }}</td>
+                            <td class="px-6 py-5">
+                                <div class="flex flex-wrap gap-2">
+                                    @forelse($rl->permissions as $perm)
+                                        <span class="px-2 py-0.5 bg-[#f0f0f0] border border-[#e5e5e5] text-[10px] text-[#555555] font-medium rounded-none">
+                                            {{ $perm->name }}
+                                        </span>
+                                    @empty
+                                        <span class="text-[11px] text-[#999999] italic">No permissions</span>
+                                    @endforelse
+                                </div>
+                            </td>
+                            <td class="px-6 py-5 text-right">
+                                <div class="flex justify-end gap-4">
+                                    <button wire:click="editRole({{ $rl->id }})" 
+                                        class="text-[11px] font-semibold text-[#2d2d2d] hover:underline uppercase tracking-widest transition-colors">
+                                        Edit
+                                    </button>
+                                    @if(!in_array($rl->name, ['admin', 'user']))
+                                        <button wire:click="confirmRoleDeletion({{ $rl->id }})" 
+                                            class="text-[11px] font-semibold text-red-600 hover:text-red-800 uppercase tracking-widest transition-colors">
+                                            Delete
+                                        </button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="px-6 py-12 text-center text-[13px] text-[#999999] italic">No roles found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <div class="p-6 border-t border-[#e5e5e5]">
+                {{ $roles->links() }}
+            </div>
         @elseif($view === 'service_types')
             <table class="w-full text-left">
                 <thead class="bg-[#f7f7f7] border-b border-[#e5e5e5]">
@@ -244,8 +302,10 @@
                 <div class="space-y-2">
                     <x-input-label for="role" value="Role" class="text-[11px] font-medium uppercase tracking-widest text-[#999999]" />
                     <select wire:model="role" id="role" class="input-field w-full">
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
+                        <option value="">Select Role</option>
+                        @foreach($role_list as $r)
+                            <option value="{{ $r->name }}">{{ ucfirst($r->name) }}</option>
+                        @endforeach
                     </select>
                     <x-input-error :messages="$errors->get('role')" />
                 </div>
@@ -317,6 +377,35 @@
             <div class="flex justify-end gap-3 pt-6 border-t border-[#f0f0f0]">
                 <x-secondary-button x-on:click="$dispatch('close')">Cancel</x-secondary-button>
                 <x-primary-button>{{ $isEditingDept ? 'Update Department' : 'Create Department' }}</x-primary-button>
+            </div>
+        </form>
+    </x-modal>
+
+    <x-modal name="role-modal" :title="$isEditingRole ? 'Edit Role' : 'New Role'" focusable>
+        <form wire:submit="{{ $isEditingRole ? 'updateRole' : 'createRole' }}" class="p-8 space-y-6">
+            <div class="space-y-2">
+                <x-input-label for="role_name" value="Role Name" class="text-[11px] font-medium uppercase tracking-widest text-[#999999]" />
+                <x-text-input wire:model="role_name" id="role_name" type="text" class="block w-full" placeholder="e.g. supervisor" required :disabled="$isEditingRole && in_array($role_name, ['admin', 'user'])" />
+                <x-input-error :messages="$errors->get('role_name')" />
+            </div>
+
+            <div class="space-y-3 pt-4 border-t border-[#e5e5e5]">
+                <x-input-label value="Permissions" class="text-[11px] font-medium uppercase tracking-widest text-[#999999]" />
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach($permission_list as $perm)
+                        <label class="flex items-center gap-3 p-3 border border-[#e5e5e5] bg-[#fafafa] cursor-pointer hover:bg-[#f0f0f0] transition-colors">
+                            <input type="checkbox" wire:model="selected_permissions" value="{{ $perm->name }}" class="rounded-none border-[#ccc] text-[#2d2d2d] focus:ring-0 w-4 h-4" />
+                            <span class="text-[12px] font-medium text-[#2d2d2d]">{{ $perm->name }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                <x-input-error :messages="$errors->get('selected_permissions')" />
+            </div>
+
+            <div class="flex justify-end gap-3 pt-6 border-t border-[#f0f0f0]">
+                <x-secondary-button x-on:click="$dispatch('close')">Cancel</x-secondary-button>
+                <x-primary-button>{{ $isEditingRole ? 'Update Role' : 'Create Role' }}</x-primary-button>
             </div>
         </form>
     </x-modal>

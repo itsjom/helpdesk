@@ -9,6 +9,15 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <!-- Prevent bfcache -->
+        <script>
+            window.addEventListener('pageshow', function (event) {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            });
+        </script>
     </head>
     <body class="font-sans antialiased bg-white text-[#555555]">
         <div class="flex min-h-screen">

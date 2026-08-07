@@ -62,9 +62,15 @@ class UserManagement extends Component
 
     public $deletingId = null;
 
-    public $deleteType = ''; // 'user' | 'department' | 'service_type'
+    public $deleteType = ''; // 'user' | 'department' | 'service_type' | 'role'
 
     public $deletingName = '';
+
+    // Role Fields
+    public $role_name = '';
+    public $selected_permissions = [];
+    public $isEditingRole = false;
+    public $editingRoleId = null;
 
     protected function rules()
     {
@@ -78,7 +84,7 @@ class UserManagement extends Component
                     $this->isEditing ? Rule::unique('users')->ignore($this->editingUserId) : 'unique:users,username',
                 ],
                 'password' => $this->isEditing ? 'nullable|string|min:8' : 'required|string|min:8',
-                'role' => 'required|in:admin,user',
+                'role' => 'required|exists:roles,name',
                 'department_id' => 'required|exists:departments,id',
             ];
         }
@@ -88,6 +94,19 @@ class UserManagement extends Component
                 'st_name' => 'required|string|max:255',
                 'st_sort_order' => 'required|integer|min:0|max:65535',
                 'st_is_active' => 'boolean',
+            ];
+        }
+
+        if ($this->view === 'roles') {
+            return [
+                'role_name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    $this->isEditingRole ? Rule::unique('roles', 'name')->ignore($this->editingRoleId) : 'unique:roles,name',
+                ],
+                'selected_permissions' => 'array',
+                'selected_permissions.*' => 'exists:permissions,name',
             ];
         }
 
@@ -105,13 +124,15 @@ class UserManagement extends Component
     {
         $this->validate();
 
-        User::create([
+        $user = User::create([
             'name' => $this->name,
             'username' => $this->username,
             'password' => Hash::make($this->password),
             'role' => $this->role,
             'department_id' => $this->department_id,
         ]);
+
+        $user->syncRoles([$this->role]);
 
         $this->resetFields();
         $this->dispatch('close-modal', 'user-modal');
@@ -151,6 +172,7 @@ class UserManagement extends Component
         }
 
         $user->update($data);
+        $user->syncRoles([$this->role]);
 
         $this->resetFields();
         $this->dispatch('close-modal', 'user-modal');
@@ -265,6 +287,53 @@ class UserManagement extends Component
         return $code;
     }
 
+    public function openRoleModal()
+    {
+        $this->isEditingRole = false;
+        $this->editingRoleId = null;
+        $this->role_name = '';
+        $this->selected_permissions = [];
+        $this->resetErrorBag();
+        $this->dispatch('open-modal', 'role-modal');
+    }
+
+    public function createRole()
+    {
+        $this->validate();
+
+        $role = \Spatie\Permission\Models\Role::create(['name' => $this->role_name]);
+        $role->syncPermissions($this->selected_permissions);
+
+        $this->reset(['role_name', 'selected_permissions', 'isEditingRole', 'editingRoleId']);
+        $this->dispatch('close-modal', 'role-modal');
+        session()->flash('success', 'Role created successfully!');
+    }
+
+    public function editRole($id)
+    {
+        $this->isEditingRole = true;
+        $this->editingRoleId = $id;
+        $role = \Spatie\Permission\Models\Role::findOrFail($id);
+        
+        $this->role_name = $role->name;
+        $this->selected_permissions = $role->permissions->pluck('name')->toArray();
+        $this->resetErrorBag();
+        $this->dispatch('open-modal', 'role-modal');
+    }
+
+    public function updateRole()
+    {
+        $this->validate();
+
+        $role = \Spatie\Permission\Models\Role::findOrFail($this->editingRoleId);
+        $role->update(['name' => $this->role_name]);
+        $role->syncPermissions($this->selected_permissions);
+
+        $this->reset(['role_name', 'selected_permissions', 'isEditingRole', 'editingRoleId']);
+        $this->dispatch('close-modal', 'role-modal');
+        session()->flash('success', 'Role updated successfully!');
+    }
+
 
     public function confirmUserDeletion($id)
     {
@@ -304,6 +373,20 @@ class UserManagement extends Component
         $this->dispatch('open-modal', 'delete-confirmation-modal');
     }
 
+    public function confirmRoleDeletion($id)
+    {
+        $role = \Spatie\Permission\Models\Role::findOrFail($id);
+        if (in_array($role->name, ['admin', 'user'])) {
+            $this->dispatch('notify', message: 'You cannot delete a core system role!', type: 'error');
+            return;
+        }
+
+        $this->deleteType = 'role';
+        $this->deletingId = $id;
+        $this->deletingName = $role->name;
+        $this->dispatch('open-modal', 'delete-confirmation-modal');
+    }
+
     public function delete()
     {
         if ($this->deleteType === 'user') {
@@ -336,6 +419,10 @@ class UserManagement extends Component
         } elseif ($this->deleteType === 'service_type') {
             ServiceType::findOrFail($this->deletingId)->delete();
             session()->flash('success', 'Service type deleted.');
+        } elseif ($this->deleteType === 'role') {
+            $role = \Spatie\Permission\Models\Role::findOrFail($this->deletingId);
+            $role->delete();
+            session()->flash('success', 'Role deleted successfully!');
         }
 
         $this->dispatch('close-modal', 'delete-confirmation-modal');
@@ -355,7 +442,7 @@ class UserManagement extends Component
 
     public function resetFields()
     {
-        $this->reset(['name', 'username', 'password', 'role', 'department_id', 'isEditing', 'editingUserId', 'dept_name', 'isEditingDept', 'editingDeptId']);
+        $this->reset(['name', 'username', 'password', 'role', 'department_id', 'isEditing', 'editingUserId', 'dept_name', 'isEditingDept', 'editingDeptId', 'role_name', 'selected_permissions', 'isEditingRole', 'editingRoleId']);
     }
 
     public function openCreateModal()
@@ -407,11 +494,20 @@ class UserManagement extends Component
                 ->paginate(10)
             : null;
 
+        $roles = $this->view === 'roles'
+            ? \Spatie\Permission\Models\Role::with('permissions')
+                ->where('name', 'like', '%'.$this->search.'%')
+                ->paginate(10)
+            : null;
+
         return view('livewire.admin.user-management', [
             'users' => $users,
             'departments' => $departments,
             'serviceTypes' => $serviceTypes,
+            'roles' => $roles,
             'dept_list' => Department::all(),
+            'role_list' => \Spatie\Permission\Models\Role::all(),
+            'permission_list' => \Spatie\Permission\Models\Permission::all(),
         ]);
     }
 }

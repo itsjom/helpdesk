@@ -14,7 +14,7 @@ class MyTickets extends Component
 
     public function cancelTicket($id)
     {
-        $ticket = Ticket::where('user_id', 1)->findOrFail($id);
+        $ticket = Ticket::where('user_id', auth()->id())->findOrFail($id);
 
         if ($ticket->status !== 'pending') {
             session()->flash('error', 'Only pending tickets can be cancelled.');
@@ -28,7 +28,7 @@ class MyTickets extends Component
         // Log the change
         TicketLog::create([
             'ticket_id' => $ticket->id,
-            'changed_by' => 1,
+            'changed_by' => auth()->id(),
             'old_status' => $oldStatus,
             'new_status' => 'cancelled',
             'remarks' => 'Cancelled by user.',
@@ -43,7 +43,7 @@ class MyTickets extends Component
     {
         return view('livewire.user.my-tickets', [
             'tickets' => Ticket::with(['recommendation', 'disposal', 'assignedTo', 'serviceType'])
-                ->where('user_id', 1)
+                ->where('user_id', auth()->id())
                 ->latest()
                 ->paginate(10),
         ]);

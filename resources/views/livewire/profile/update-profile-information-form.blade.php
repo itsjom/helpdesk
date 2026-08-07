@@ -3,18 +3,13 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
-use Livewire\WithFileUploads;
 
 new class extends Component
 {
-    use WithFileUploads;
-
     public string $name = '';
-    public string $username = '';
-    public $photo;
+    public string $email = '';
 
     /**
      * Mount the component.
@@ -22,7 +17,7 @@ new class extends Component
     public function mount(): void
     {
         $this->name = Auth::user()->name;
-        $this->username = Auth::user()->username;
+        $this->email = Auth::user()->email;
     }
 
     /**
@@ -34,27 +29,36 @@ new class extends Component
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'lowercase', 'max:50', Rule::unique(User::class)->ignore($user->id)],
-            'photo' => ['nullable', 'mimes:jpg,jpeg,png,gif,webp', 'max:10240'],
-        ], [
-            'photo.max' => 'The profile photo may not be greater than 10MB.',
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
         ]);
 
-        if ($this->photo) {
-            if ($user->profile_photo_path) {
-                Storage::disk('public')->delete($user->profile_photo_path);
-            }
-            $validated['profile_photo_path'] = $this->photo->store('profile-photos', 'public');
-        }
-
-        unset($validated['photo']);
         $user->fill($validated);
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
 
         $user->save();
 
-        $this->photo = null;
-
         $this->dispatch('profile-updated', name: $user->name);
+    }
+
+    /**
+     * Send an email verification notification to the current user.
+     */
+    public function sendVerification(): void
+    {
+        $user = Auth::user();
+
+        if ($user->hasVerifiedEmail()) {
+            $this->redirectIntended(default: route('dashboard', absolute: false));
+
+            return;
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        Session::flash('status', 'verification-link-sent');
     }
 }; ?>
 
@@ -65,36 +69,11 @@ new class extends Component
         </h2>
 
         <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and username.") }}
+            {{ __("Update your account's profile information and email address.") }}
         </p>
     </header>
 
     <form wire:submit="updateProfileInformation" class="mt-6 space-y-6">
-        <!-- Profile Photo -->
-        <div>
-            <x-input-label for="photo" :value="__('Profile Photo')" />
-            
-            <div class="mt-2 flex items-center gap-4">
-                <div class="h-20 w-20 rounded-full overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
-                    @if ($photo)
-                        <img src="{{ $photo->temporaryUrl() }}" class="h-full w-full object-cover">
-                    @elseif (auth()->user()->profile_photo_path)
-                        <img src="{{ auth()->user()->profilePhotoUrl() }}" class="h-full w-full object-cover">
-                    @else
-                        <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                    @endif
-                </div>
-
-                <div>
-                    <input type="file" wire:model="photo" id="photo" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#2d2d2d] file:text-white hover:file:bg-[#454545] transition-colors cursor-pointer" accept=".jpg,.jpeg,.png,.gif,.webp">
-                    <div wire:loading wire:target="photo" class="text-sm text-gray-500 mt-2">Uploading...</div>
-                    <x-input-error class="mt-2" :messages="$errors->get('photo')" />
-                </div>
-            </div>
-        </div>
-
         <div>
             <x-input-label for="name" :value="__('Name')" />
             <x-text-input wire:model="name" id="name" name="name" type="text" class="mt-1 block w-full" required autofocus autocomplete="name" />
@@ -102,9 +81,27 @@ new class extends Component
         </div>
 
         <div>
-            <x-input-label for="username" :value="__('Username')" />
-            <x-text-input wire:model="username" id="username" name="username" type="text" class="mt-1 block w-full" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('username')" />
+            <x-input-label for="email" :value="__('Email')" />
+            <x-text-input wire:model="email" id="email" name="email" type="email" class="mt-1 block w-full" required autocomplete="username" />
+            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+
+            @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
+                <div>
+                    <p class="text-sm mt-2 text-gray-800">
+                        {{ __('Your email address is unverified.') }}
+
+                        <button wire:click.prevent="sendVerification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            {{ __('Click here to re-send the verification email.') }}
+                        </button>
+                    </p>
+
+                    @if (session('status') === 'verification-link-sent')
+                        <p class="mt-2 font-medium text-sm text-green-600">
+                            {{ __('A new verification link has been sent to your email address.') }}
+                        </p>
+                    @endif
+                </div>
+            @endif
         </div>
 
         <div class="flex items-center gap-4">
