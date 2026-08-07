@@ -20,7 +20,8 @@ new class extends Component
 <aside class="w-[220px] bg-[#2d2d2d] h-screen flex flex-col sticky top-0 shadow-lg shadow-black/10">
     <!-- Logo Section -->
     <div class="h-16 flex items-center px-6 border-b border-white/10 shrink-0">
-        <a href="{{ auth()->user()?->hasRole('admin') ? route('admin.dashboard') : route('user.tickets') }}" wire:navigate class="flex items-center">
+        <a href="{{ auth()->user()?->hasRole('admin') ? route('admin.dashboard') : route('user.tickets') }}" wire:navigate class="flex items-center gap-2">
+            <img src="{{ asset('favicon.ico') }}" alt="Logo" class="w-6 h-6 object-contain">
             <span class="text-[15px] font-bold tracking-tight text-white uppercase letter-spacing-0.1em">Helpdesk</span>
         </a>
     </div>
