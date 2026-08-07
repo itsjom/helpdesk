@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "949856b912fa55025f1b726ed491efe0",
+    "content-hash": "f7ba701d51e0a0534a8a7d4f3067f8dd",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -2254,16 +2254,16 @@
         },
         {
             "name": "livewire/livewire",
-            "version": "v3.7.13",
+            "version": "v4.3.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/livewire.git",
-                "reference": "152b5a1a3f9ee93b6887a3bad6ab8e6db035efa5"
+                "reference": "7ef4b2a876c71744e86463079dd506b26eeab624"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/livewire/zipball/152b5a1a3f9ee93b6887a3bad6ab8e6db035efa5",
-                "reference": "152b5a1a3f9ee93b6887a3bad6ab8e6db035efa5",
+                "url": "https://api.github.com/repos/livewire/livewire/zipball/7ef4b2a876c71744e86463079dd506b26eeab624",
+                "reference": "7ef4b2a876c71744e86463079dd506b26eeab624",
                 "shasum": ""
             },
             "require": {
@@ -2318,7 +2318,7 @@
             "description": "A front-end framework for Laravel.",
             "support": {
                 "issues": "https://github.com/livewire/livewire/issues",
-                "source": "https://github.com/livewire/livewire/tree/v3.7.13"
+                "source": "https://github.com/livewire/livewire/tree/v4.3.5"
             },
             "funding": [
                 {
@@ -2326,7 +2326,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-03-30T22:04:01+00:00"
+            "time": "2026-08-03T04:09:44+00:00"
         },
         {
             "name": "livewire/volt",
@@ -9118,12 +9118,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.6.0"
 }
