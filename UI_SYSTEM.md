@@ -50,15 +50,16 @@ COMPONENTS
 ### Cards & Panels
 - background: `#ffffff`
 - border: `1px solid #e5e5e5`
-- border-radius: `12px`
+- border-radius: `0px` (see Consistency Rule 4 — sharp edges only)
 - padding: `20px 24px`
 - No shadows unless absolutely needed — prefer border over shadow.
 - If shadow is needed: `box-shadow: 0 1px 4px rgba(0,0,0,0.06)` only.
 
 ### Inputs (Text, Select, Textarea)
+- class: `.input-field` (defined in `resources/css/app.css`)
 - background: `#f7f7f7`
 - border: `1px solid #e5e5e5`
-- border-radius: `8px`
+- border-radius: `0px`
 - padding: `10px 14px`
 - font-size: `14px`
 - color: `#2d2d2d`
@@ -66,22 +67,27 @@ COMPONENTS
 - **Placeholder:** color `#999`
 
 ### Buttons
-- **Primary:** background `#2d2d2d`, color `#fff`, border-radius `8px`, padding `9px 20px`, font-weight `500`
+- **Primary:** class `.btn-primary`, background `#2d2d2d`, color `#fff`, border-radius `0px`, padding `9px 20px`, font-weight `500`
   - *On hover:* background `#454545`
-- **Secondary:** background `#fff`, color `#2d2d2d`, border `1px solid #2d2d2d`, border-radius `8px`, padding `9px 20px`
+- **Secondary:** class `.btn-secondary`, background `#fff`, color `#2d2d2d`, border `1px solid #2d2d2d`, border-radius `0px`, padding `9px 20px`
   - *On hover:* background `#f7f7f7`
 - **Ghost:** background `transparent`, color `#555`, border `1px solid #e5e5e5`
   - *On hover:* background `#f7f7f7`, border-color `#ccc`
 - **Danger:** background `transparent`, color `red`, border `1px solid red` (Avoid using filled solid color when using red).
 
-### Ticket Status Badges
-- **Open:** background `#f0f0f0`, color `#555`, border `1px solid #e0e0e0`
-- **In Progress:** background `#2d2d2d`, color `#ffffff`, border `none`
-- **Resolved:** background `#f0f0f0`, color `#999`, border `1px solid #e0e0e0`
-- **Closed:** background `#f7f7f7`, color `#bbb`, border `1px solid #efefef`
-- **Critical:** background `#2d2d2d`, color `#ffffff`, border `none`
-- **High:** background `#f0f0f0`, color `#333`, border `1px solid #ccc`
-- **All Badges:** border-radius `20px`, padding `3px 12px`, font-size `11px`, font-weight `500`
+### Ticket Status & Priority Indicators
+No pills, no fills. A 6px solid dot plus a text label, following the "hierarchy from weight, not chroma" rule — this replaces the old bordered-pill badge style.
+
+- **Dot + label**, `gap: 8px`, label font-size `12px`
+- **Pending / unset:** dot `#999999`, label `#555555`
+- **OnQueue / In Progress:** dot `#2d2d2d`, label `#2d2d2d` font-weight `500`
+- **Resolved:** dot `#c7c7c7`, label `#999999`
+- **Disapproved / Cancelled:** dot `#e0e0e0`, label `#bbbbbb`
+- **Priority — High:** dot `#2d2d2d`, label `#2d2d2d` font-weight `600`
+- **Priority — Medium:** dot `#999999`, label `#555555` font-weight `500`
+- **Priority — Low:** dot `#e0e0e0`, label `#999999` font-weight `400`
+
+> Priority no longer uses red. Per the "no chromatic accents" rule above, urgency is communicated through dot darkness and label weight only — red stays reserved for destructive actions (delete), and only as outline/text, never a filled block.
 
 ### Metric Stat Cards
 - **Light:** background `#f7f7f7`, border-radius `10px`, padding `16px`, label `#999`, number `#2d2d2d`

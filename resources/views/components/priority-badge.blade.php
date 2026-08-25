@@ -1,14 +1,22 @@
 @props(['priority'])
 
 @php
-    $classes = match($priority) {
-        'high' => 'bg-red-600 text-white border-red-600 font-bold',
-        'medium' => 'bg-red-50 text-red-600 border-red-600 font-semibold',
-        'low' => 'bg-transparent text-red-600 border-transparent font-medium text-[#999999]',
-        default => 'bg-[#f7f7f7] text-[#999999] border-[#e5e5e5]',
+    $dotClasses = match($priority) {
+        'high' => 'bg-[#2d2d2d]',
+        'medium' => 'bg-[#999999]',
+        'low' => 'bg-[#e0e0e0]',
+        default => 'bg-[#e0e0e0]',
+    };
+
+    $textClasses = match($priority) {
+        'high' => 'text-[#2d2d2d] font-semibold',
+        'medium' => 'text-[#555555] font-medium',
+        'low' => 'text-[#999999] font-normal',
+        default => 'text-[#999999] font-normal',
     };
 @endphp
 
-<span {{ $attributes->merge(['class' => "px-3 py-1 rounded-none text-[10px] border uppercase tracking-widest inline-flex items-center $classes"]) }}>
-    {{ $priority ?: 'Pending' }}
+<span {{ $attributes->merge(['class' => "inline-flex items-center gap-2 text-[12px] capitalize $textClasses"]) }}>
+    <span class="w-[6px] h-[6px] rounded-full shrink-0 {{ $dotClasses }}"></span>
+    {{ $priority ?: 'Unset' }}
 </span>
