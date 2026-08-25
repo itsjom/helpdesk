@@ -3,6 +3,28 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+// Local dev convenience: DB_TARGET in .env picks which credential set below
+// the 'mysql' connection uses. Set DB_TARGET=local or DB_TARGET=prod — no
+// need to edit DB_HOST/DB_DATABASE/etc by hand each time you switch.
+$dbTargets = [
+    'local' => [
+        'host' => env('DB_LOCAL_HOST', '127.0.0.1'),
+        'port' => env('DB_LOCAL_PORT', '3306'),
+        'database' => env('DB_LOCAL_DATABASE', 'helpdesk_local'),
+        'username' => env('DB_LOCAL_USERNAME', 'root'),
+        'password' => env('DB_LOCAL_PASSWORD', ''),
+    ],
+    'prod' => [
+        'host' => env('DB_PROD_HOST', '192.168.0.234'),
+        'port' => env('DB_PROD_PORT', '3306'),
+        'database' => env('DB_PROD_DATABASE', 'helpdesk'),
+        'username' => env('DB_PROD_USERNAME', 'root'),
+        'password' => env('DB_PROD_PASSWORD', ''),
+    ],
+];
+
+$dbConfig = $dbTargets[env('DB_TARGET', 'local')] ?? $dbTargets['local'];
+
 return [
 
     /*
@@ -47,11 +69,11 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            'host' => $dbConfig['host'],
+            'port' => $dbConfig['port'],
+            'database' => $dbConfig['database'],
+            'username' => $dbConfig['username'],
+            'password' => $dbConfig['password'],
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8'),
             'collation' => env('DB_COLLATION', 'utf8_unicode_ci'),

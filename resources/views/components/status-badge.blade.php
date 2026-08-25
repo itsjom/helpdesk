@@ -1,21 +1,29 @@
 @props(['status'])
 
 @php
-    $classes = match($status) {
-        'pending' => 'bg-[#f0f0f0] text-[#555555] border-[#e0e0e0]',
-        'approved' => 'bg-[#2d2d2d] text-white border-none',
-        'in_progress' => 'bg-[#2d2d2d] text-white border-none',
-        'resolved' => 'bg-[#f0f0f0] text-[#999999] border-[#e0e0e0]',
-        'disapproved' => 'bg-[#f7f7f7] text-[#bbb] border-[#efefef]',
-        'cancelled' => 'bg-[#f7f7f7] text-[#bbb] border-[#efefef]',
-        default => 'bg-[#f7f7f7] text-[#555555] border-[#e5e5e5]',
+    $dotClasses = match($status) {
+        'pending' => 'bg-[#999999]',
+        'approved', 'in_progress' => 'bg-[#2d2d2d]',
+        'resolved' => 'bg-[#c7c7c7]',
+        'disapproved', 'cancelled' => 'bg-[#e0e0e0]',
+        default => 'bg-[#999999]',
+    };
+
+    $textClasses = match($status) {
+        'approved', 'in_progress' => 'text-[#2d2d2d] font-medium',
+        'resolved' => 'text-[#999999]',
+        'disapproved', 'cancelled' => 'text-[#bbbbbb]',
+        default => 'text-[#555555]',
+    };
+
+    $label = match($status) {
+        'approved' => 'OnQueue',
+        'in_progress' => 'In Progress',
+        default => str_replace('_', ' ', $status),
     };
 @endphp
 
-<span {{ $attributes->merge(['class' => "px-3 py-1 rounded-none text-[11px] font-medium border uppercase tracking-wide inline-flex items-center $classes"]) }}>
-    {{ match($status) {
-        'approved' => 'OnQueue',
-        'in_progress' => 'In Progress',
-        default => str_replace('_', ' ', $status)
-    } }}
+<span {{ $attributes->merge(['class' => "inline-flex items-center gap-2 text-[12px] capitalize $textClasses"]) }}>
+    <span class="w-[6px] h-[6px] rounded-full shrink-0 {{ $dotClasses }}"></span>
+    {{ $label }}
 </span>
