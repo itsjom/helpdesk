@@ -65,6 +65,11 @@
 
                             <td class="px-6 py-5 whitespace-nowrap text-right">
                                 <div class="flex items-center justify-end gap-4">
+                                    <button wire:click="viewTicket({{ $ticket->id }})"
+                                        class="text-[12px] font-bold text-[#2d2d2d] hover:text-[#555555] uppercase tracking-wider">
+                                        View
+                                    </button>
+
                                     @php
                                         $pdfPath = $ticket->recommendation?->file_path ?? $ticket->disposal?->file_path;
                                     @endphp
@@ -109,4 +114,82 @@
             {{ $tickets->links() }}
         </div>
     @endif
+
+    <!-- View Ticket Modal -->
+    <x-modal name="view-ticket-modal" maxWidth="lg" focusable>
+        @if($viewingTicket)
+            <div class="p-8">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <h3 class="text-[16px] font-semibold text-[#2d2d2d]">{{ $viewingTicket->ticket_no }}</h3>
+                        <p class="text-[13px] text-[#555555] mt-1 capitalize">
+                            {{ $viewingTicket->serviceType?->name ?? str_replace('_', ' ', $viewingTicket->service_type) }}
+                        </p>
+                    </div>
+                    <x-status-badge :status="$viewingTicket->status" />
+                </div>
+
+                <dl class="grid grid-cols-2 gap-4 text-[13px] mb-6">
+                    <div>
+                        <dt class="text-[11px] font-medium text-[#999999] uppercase tracking-widest">Priority</dt>
+                        <dd class="mt-1"><x-priority-badge :priority="$viewingTicket->priority" /></dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11px] font-medium text-[#999999] uppercase tracking-widest">Assigned To</dt>
+                        <dd class="mt-1 text-[#2d2d2d]">{{ $viewingTicket->assignedTo?->username ?? 'Waiting...' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11px] font-medium text-[#999999] uppercase tracking-widest">Submitted</dt>
+                        <dd class="mt-1 text-[#2d2d2d]">{{ $viewingTicket->created_at->format('M d, Y g:i A') }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-[11px] font-medium text-[#999999] uppercase tracking-widest">Due</dt>
+                        <dd class="mt-1 text-[#2d2d2d]">{{ $viewingTicket->due_date?->format('M d, Y g:i A') ?? '—' }}</dd>
+                    </div>
+                </dl>
+
+                <div class="mb-6">
+                    <dt class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-1">Description</dt>
+                    <p class="text-[13px] text-[#2d2d2d] whitespace-pre-line">{{ $viewingTicket->description ?: '—' }}</p>
+                </div>
+
+                @if($viewingTicket->admin_remarks)
+                    <div class="mb-6">
+                        <dt class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-1">Admin Remarks</dt>
+                        <p class="text-[13px] text-[#2d2d2d] whitespace-pre-line">{{ $viewingTicket->admin_remarks }}</p>
+                    </div>
+                @endif
+
+                @php
+                    $viewPdfPath = $viewingTicket->recommendation?->file_path ?? $viewingTicket->disposal?->file_path;
+                @endphp
+                @if($viewPdfPath)
+                    <div class="mb-6">
+                        <a href="{{ Storage::url($viewPdfPath) }}" target="_blank"
+                            class="text-[12px] font-bold text-[#2d2d2d] underline">
+                            View Resolution PDF
+                        </a>
+                    </div>
+                @endif
+
+                @if($viewingTicket->logs->isNotEmpty())
+                    <div class="mb-6">
+                        <dt class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-2">History</dt>
+                        <ul class="space-y-2">
+                            @foreach($viewingTicket->logs as $log)
+                                <li class="text-[12px] text-[#555555] flex justify-between gap-4 border-b border-[#f0f0f0] pb-2">
+                                    <span>{{ $log->newStatusLabel() }}@if($log->remarks) — {{ $log->remarks }}@endif</span>
+                                    <span class="text-[#999999] whitespace-nowrap">{{ $log->created_at->format('M d, g:i A') }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <div class="flex justify-end pt-4 border-t border-[#f0f0f0]">
+                    <x-secondary-button x-on:click="$dispatch('close')">Close</x-secondary-button>
+                </div>
+            </div>
+        @endif
+    </x-modal>
 </div>

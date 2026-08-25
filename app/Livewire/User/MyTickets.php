@@ -12,6 +12,17 @@ class MyTickets extends Component
 {
     use WithPagination;
 
+    public ?Ticket $viewingTicket = null;
+
+    public function viewTicket($id)
+    {
+        $this->viewingTicket = Ticket::with(['serviceType', 'assignedTo', 'recommendation', 'disposal', 'logs.user'])
+            ->where('user_id', auth()->id())
+            ->findOrFail($id);
+
+        $this->dispatch('open-modal', 'view-ticket-modal');
+    }
+
     public function cancelTicket($id)
     {
         $ticket = Ticket::where('user_id', auth()->id())->findOrFail($id);

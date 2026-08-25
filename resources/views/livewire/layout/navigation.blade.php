@@ -13,7 +13,7 @@ new class extends Component
     public function logout(\App\Livewire\Actions\Logout $logout): void
     {
         $logout();
-        $this->redirect('/', navigate: true);
+        $this->redirect(route('login'));
     }
 }; ?>
 

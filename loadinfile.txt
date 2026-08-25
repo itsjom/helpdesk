@@ -1,0 +1,7 @@
+LOAD DATA LOCAL INFILE 'C:/path/to/yourfile.csv'
+INTO TABLE users
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(column1, column2, column3, column4);

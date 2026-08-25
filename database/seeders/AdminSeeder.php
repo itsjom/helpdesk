@@ -15,12 +15,14 @@ class AdminSeeder extends Seeder
     {
         $department = Department::where('name', 'IT Support')->first() ?? Department::first();
 
-        User::create([
+        $admin = User::create([
             'name' => 'System Administrator',
             'username' => 'admin',
             'password' => 'password',
             'role' => 'admin',
             'department_id' => $department?->id,
         ]);
+
+        $admin->assignRole('admin');
     }
 }
