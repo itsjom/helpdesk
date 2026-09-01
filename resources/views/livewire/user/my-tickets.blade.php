@@ -75,7 +75,7 @@
                                     @endphp
 
                                     @if($pdfPath)
-                                        <a href="{{ Storage::url($pdfPath) }}" target="_blank"
+                                        <a href="{{ Storage::disk('public')->url($pdfPath) }}" target="_blank"
                                             class="text-[12px] font-bold text-[#2d2d2d] underline flex items-center gap-1"
                                             title="View Resolution PDF">
                                             <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,7 +165,7 @@
                 @endphp
                 @if($viewPdfPath)
                     <div class="mb-6">
-                        <a href="{{ Storage::url($viewPdfPath) }}" target="_blank"
+                        <a href="{{ Storage::disk('public')->url($viewPdfPath) }}" target="_blank"
                             class="text-[12px] font-bold text-[#2d2d2d] underline">
                             View Resolution PDF
                         </a>

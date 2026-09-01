@@ -265,7 +265,7 @@
                 @if($pdfPath)
                     <div class="mb-10">
                         <h4 class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-3">Resolution Document</h4>
-                        <a href="{{ Storage::url($pdfPath) }}" target="_blank" class="flex items-center gap-3 p-4 bg-[#f7f7f7] border border-[#e5e5e5] text-[#2d2d2d] hover:bg-[#f0f0f0] transition-all group">
+                        <a href="{{ Storage::disk('public')->url($pdfPath) }}" target="_blank" class="flex items-center gap-3 p-4 bg-[#f7f7f7] border border-[#e5e5e5] text-[#2d2d2d] hover:bg-[#f0f0f0] transition-all group">
                             <svg class="h-6 w-6 text-[#555555]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9h1.5m1.5 0H13m-3 3h3m-3 3h3" /></svg>
                             <div class="flex flex-col">
                                 <span class="text-[13px] font-bold uppercase tracking-wider">Attached File</span>
