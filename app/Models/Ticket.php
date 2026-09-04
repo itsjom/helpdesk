@@ -60,6 +60,11 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
+    public function resolvedBy()
+    {
+        return $this->belongsTo(User::class, 'resolved_by');
+    }
+
     /**
      * service_type column stores ServiceType.code
      */
