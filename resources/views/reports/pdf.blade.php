@@ -31,7 +31,8 @@
                 <th>Date</th>
                 <th>Service Type</th>
                 <th>Requirement Description</th>
-                <th></th>
+                <th>Status</th>
+                <th>Accomplished By</th>
             </tr>
         </thead>
         <tbody>
@@ -42,6 +43,7 @@
                 <td>{{ $ticket->serviceType?->name ?? str_replace('_', ' ', $ticket->service_type) }}</td>
                 <td>{{ $ticket->description }}</td>
                 <td>{{ \App\Models\TicketLog::formatStatusLabel($ticket->status) }}</td>
+                <td>{{ $ticket->assignedTo?->name ?? 'N/A' }}</td>
             </tr>
             @empty
             <tr>

@@ -72,12 +72,17 @@ new class extends Component
     <div class="p-4 bg-white/5 border-t border-white/10 shrink-0">
         <div class="flex flex-col space-y-6">
             <div class="px-2 flex items-center gap-3">
+                @if(auth()->user()?->profile_photo_path)
+                    <img src="{{ auth()->user()->profilePhotoUrl() }}" alt="{{ auth()->user()->name }}" 
+                        class="h-9 w-9 rounded-none object-cover shrink-0 border border-white/20">
+                @else
                     <div class="h-9 w-9 rounded-none bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
                         <span class="text-white text-xs font-bold">{{ substr(auth()->user()?->name ?? 'System', 0, 1) }}</span>
                     </div>
+                @endif
                 <div class="min-w-0">
                     <div class="text-[13px] font-bold text-white truncate">{{ auth()->user()?->name ?? 'Guest User' }}</div>
-                    <div class="text-[11px] text-white/40 truncate">{{ auth()->user()?->email ?? 'guest@system.local' }}</div>
+                    <div class="text-[11px] text-white/40 truncate">{{ auth()->user()?->email ?? 'CASURECO II - Helpdesk' }}</div>
                 </div>
             </div>
             

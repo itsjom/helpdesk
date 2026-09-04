@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.10s>
     <div class="mb-12 flex justify-between items-end">
         <div>
             <h1 class="text-[24px] font-semibold text-[#2d2d2d]">My Tickets</h1>

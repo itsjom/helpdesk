@@ -286,6 +286,29 @@
     <!-- Modals -->
     <x-modal name="user-modal" :title="$isEditing ? 'Edit User' : 'New User'" focusable>
         <form wire:submit="{{ $isEditing ? 'updateUser' : 'createUser' }}" class="p-8 space-y-6">
+
+            <div class="space-y-2">
+                <x-input-label for="photo" value="Profile Photo (Optional)" class="text-[11px] font-medium uppercase tracking-widest text-[#999999]" />
+                
+                <div class="flex items-center gap-4">
+                    @if ($photo)
+                        <img src="{{ $photo->temporaryUrl() }}" class="w-12 h-12 rounded-none object-cover border border-[#e5e5e5]">
+                    @elseif ($isEditing && $existingPhoto)
+                        <img src="{{ asset('storage/profile_pic/' . $existingPhoto) }}" class="w-12 h-12 rounded-none object-cover border border-[#e5e5e5]">
+                    @else
+                        <div class="w-12 h-12 rounded-none bg-[#f0f0f0] border border-[#e5e5e5] flex items-center justify-center text-[10px] text-[#999999] uppercase">
+                            None
+                        </div>
+                    @endif
+
+                    <input type="file" wire:model="photo" accept="image/png,image/jpeg,image/jpg" 
+                        class="text-[12px] text-[#555555] file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-[11px] file:font-bold file:bg-[#2d2d2d] file:text-white hover:file:bg-[#454545] transition-all">
+                </div>
+
+                <div wire:loading wire:target="photo" class="text-[10px] text-[#555555] font-medium animate-pulse">Uploading preview...</div>
+                <x-input-error :messages="$errors->get('photo')" />
+            </div>
+
             <div class="space-y-2">
                 <x-input-label for="name" value="Full Name" class="text-[11px] font-medium uppercase tracking-widest text-[#999999]" />
                 <x-text-input wire:model="name" id="name" type="text" class="block w-full" placeholder="e.g. Juan dela Cruz" required />

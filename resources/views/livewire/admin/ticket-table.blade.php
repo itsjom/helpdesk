@@ -1,4 +1,4 @@
-<div x-data="{ showRemarks: null }">
+<div x-data="{ showRemarks: null }" wire:poll.10s>
 
     <div class="mb-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
@@ -32,7 +32,7 @@
 
     <!-- Filters Section -->
     <div class="bg-[#f7f7f7] p-6 rounded-none border border-[#e5e5e5] mb-12">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
             <div>
                 <label class="text-[11px] font-medium text-[#999999] uppercase tracking-wider mb-2 block">Search</label>
                 <input wire:model.live.debounce.300ms="search" type="text" class="input-field w-full" placeholder="Search No. or User...">
@@ -67,6 +67,16 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="text-[11px] font-medium text-[#999999] uppercase tracking-wider mb-2 block">Assigned</label>
+                <select wire:model.live="assigned_to_filter" class="input-field w-full">
+                    <option value="">All Admins</option>
+                    <option value="unassigned">Unassigned</option>
+                    @foreach($adminUsers as $admin)
+                        <option value="{{ $admin->id }}">{{ $admin->username }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
     </div>
 
@@ -92,7 +102,7 @@
                                 <div class="text-[11px] text-[#999999] mt-1">{{ $ticket->created_at->format('M d, Y') }}</div>
                             </td>
                             <td class="px-6 py-5 whitespace-nowrap">
-                                <div class="text-[13px] text-[#2d2d2d] font-medium">{{ $ticket->user->username }}</div>
+                                <div class="text-[13px] text-[#2d2d2d] font-medium">{{ $ticket->user->name }}</div>
                                 <div class="text-[11px] text-[#999999]">{{ $ticket->user->department?->name ?? 'N/A' }}</div>
                             </td>
                             <td class="px-6 py-5 whitespace-nowrap">
@@ -151,10 +161,16 @@
                                             </div>
                                         @elseif($ticket->status === 'in_progress')
                                             <div class="flex items-center justify-end gap-1">
-                                                <button wire:click="updateStatus({{ $ticket->id }}, 'resolved')" class="btn-primary text-[11px] py-1.5 px-3">Resolve</button>
+                                                <button wire:click="updateStatus({{ $ticket->id }}, 'resolved')" 
+                                                    wire:confirm="Are you sure you want to resolve this ticket assigned to user {{ strtoupper($ticket->assignedTo?->username) }}? This action cannot be undone."
+                                                    class="btn-primary text-[11px] py-1.5 px-3">Resolve</button>
                                                 <button @click="showRemarks = (showRemarks === {{ $ticket->id }} ? null : {{ $ticket->id }}); if(showRemarks) $wire.set('remarks', '{{ addslashes($ticket->admin_remarks) }}')" 
                                                     class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-white text-[#2d2d2d] border border-[#e5e5e5] hover:bg-[#f7f7f7] transition-all">
                                                     Comment
+                                                </button>
+                                                <button wire:click="$set('transferringTicketId', {{ $ticket->id }})" 
+                                                    class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-white text-[#2d2d2d] border border-[#e5e5e5] hover:bg-[#f7f7f7] transition-all">
+                                                    Transfer
                                                 </button>
                                             </div>
                                         @endif
@@ -178,6 +194,31 @@
                                             </div>
                                             <div wire:loading wire:target="attachedFile" class="mt-3 text-[10px] text-[#555555] font-medium animate-pulse">Uploading file... please wait</div>
                                             <x-input-error :messages="$errors->get('attachedFile')" class="mt-2" />
+                                        </div>
+                                    @endif
+
+                                    @if($transferringTicketId === $ticket->id)
+                                        <div class="mt-4 p-4 bg-[#f7f7f7] border border-[#e5e5e5] text-left">
+                                            <label class="text-[10px] font-bold text-[#999999] uppercase tracking-widest mb-2 block">Transfer to</label>
+                                            <select wire:model="transferToUserId" class="input-field w-full text-[13px] mb-3">
+                                                <option value="">Select admin...</option>
+                                                @foreach($adminUsers as $admin)
+                                                    @if($admin->id !== $ticket->assigned_to)
+                                                        <option value="{{ $admin->id }}">{{ $admin->username }}</option>
+                                                    @endif
+                                                @endforeach
+                                            </select>
+                                            <div class="flex gap-4">
+                                                <button wire:click="transferTicket({{ $ticket->id }})" 
+                                                    wire:confirm="Transfer this ticket? It will disappear from your assigned list."
+                                                    class="text-[11px] font-semibold text-[#2d2d2d] uppercase tracking-wider underline">
+                                                    Confirm Transfer
+                                                </button>
+                                                <button wire:click="$set('transferringTicketId', null)" class="text-[11px] font-semibold text-[#999999] uppercase tracking-wider">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                            <x-input-error :messages="$errors->get('transferToUserId')" class="mt-2" />
                                         </div>
                                     @endif
 
@@ -241,7 +282,7 @@
                     </div>
                     <div>
                         <h4 class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-2">User</h4>
-                        <p class="text-[14px] font-medium text-[#2d2d2d]">{{ $ticket->user->username }} ({{ $ticket->user->department?->name ?? 'N/A' }})</p>
+                        <p class="text-[14px] font-medium text-[#2d2d2d]">{{ $ticket->user->name }} ({{ $ticket->user->department?->name ?? 'N/A' }})</p>
                     </div>
                     <div>
                         <h4 class="text-[11px] font-medium text-[#999999] uppercase tracking-widest mb-2">Due Date</h4>

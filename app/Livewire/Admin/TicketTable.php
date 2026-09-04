@@ -28,10 +28,41 @@ class TicketTable extends Component
     #[Url(history: true)]
     public $service_type = '';
 
+    #[Url(history: true)]
+    public $assigned_to_filter = '';
+
     public $remarks = '';
 
     public $attachedFile;
     public $uploadingTicketId = null;
+
+    public $transferringTicketId = null;
+    public $transferToUserId = '';
+
+    public function transferTicket($ticketId)
+    {
+        $this->validate([
+            'transferToUserId' => 'required|exists:users,id',
+        ]);
+
+        $ticket = Ticket::findOrFail($ticketId);
+        $oldAssignee = $ticket->assignedTo?->username ?? 'Unassigned';
+        $newAssignee = User::find($this->transferToUserId);
+
+        $ticket->update(['assigned_to' => $this->transferToUserId]);
+
+        TicketLog::create([
+            'ticket_id' => $ticket->id,
+            'changed_by' => auth()->id(),
+            'old_status' => $ticket->status,
+            'new_status' => $ticket->status,
+            'remarks' => "Transferred from {$oldAssignee} to {$newAssignee->username}",
+        ]);
+
+        $this->transferringTicketId = null;
+        $this->transferToUserId = '';
+        $this->dispatch('notify', message: "Ticket transferred to {$newAssignee->username}.", type: 'success');
+    }
 
     public function updatedSearch()
     {
@@ -49,6 +80,11 @@ class TicketTable extends Component
     }
 
     public function updatedServiceType()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedAssignedToFilter()
     {
         $this->resetPage();
     }
@@ -72,6 +108,10 @@ class TicketTable extends Component
 
         if ($newStatus === 'approved') {
             $updateData['assigned_to'] = auth()->id();
+        }
+
+        if ($newStatus === 'resolved') {
+            $updateData['resolved_by'] = auth()->id();
         }
 
         $ticket->update($updateData);
@@ -178,6 +218,13 @@ class TicketTable extends Component
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
             ->when($this->priority, fn ($q) => $q->where('priority', $this->priority))
             ->when($this->service_type, fn ($q) => $q->where('service_type', $this->service_type))
+            ->when($this->assigned_to_filter, function ($q) {
+                if ($this->assigned_to_filter === 'unassigned') {
+                    $q->whereNull('assigned_to');
+                } else {
+                    $q->where('assigned_to', $this->assigned_to_filter);
+                }
+            })
             ->latest();
 
         $pendingCount = Ticket::query()
@@ -192,6 +239,7 @@ class TicketTable extends Component
             'pendingCount' => $pendingCount,
             'activeCount' => $activeCount,
             'serviceTypeOptions' => ServiceType::ordered()->get(),
+            'adminUsers' => User::role('admin')->get(),
         ]);
     }
 }

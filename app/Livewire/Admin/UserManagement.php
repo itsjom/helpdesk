@@ -12,10 +12,11 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 
 class UserManagement extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     // User Fields
     public $name = '';
@@ -72,6 +73,10 @@ class UserManagement extends Component
     public $isEditingRole = false;
     public $editingRoleId = null;
 
+    //user management
+    public $photo;
+    public $existingPhoto = null;
+
     protected function rules()
     {
         if ($this->view === 'users') {
@@ -86,6 +91,7 @@ class UserManagement extends Component
                 'password' => $this->isEditing ? 'nullable|string|min:8' : 'required|string|min:8',
                 'role' => 'required|exists:roles,name',
                 'department_id' => 'required|exists:departments,id',
+                'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             ];
         }
 
@@ -124,12 +130,19 @@ class UserManagement extends Component
     {
         $this->validate();
 
+        $photoFilename = null;
+        if ($this->photo) {
+            $path = $this->photo->store('profile_pic', 'public'); 
+            $photoFilename = basename($path);
+        }
+
         $user = User::create([
             'name' => $this->name,
             'username' => $this->username,
             'password' => Hash::make($this->password),
             'role' => $this->role,
             'department_id' => $this->department_id,
+            'profile_photo_path' => $photoFilename,
         ]);
 
         $user->syncRoles([$this->role]);
@@ -150,6 +163,8 @@ class UserManagement extends Component
         $this->role = $user->role;
         $this->department_id = $user->department_id;
         $this->password = '';
+        $this->existingPhoto = $user->profile_photo_path; 
+        $this->photo = null; 
 
         $this->dispatch('open-modal', 'user-modal');
     }
@@ -169,6 +184,14 @@ class UserManagement extends Component
 
         if (! empty($this->password)) {
             $data['password'] = Hash::make($this->password);
+        }
+
+        if ($this->photo) {
+            if ($user->profile_photo_path) {
+                \Storage::disk('public')->delete('profile_pic/' . $user->profile_photo_path);
+            }
+            $path = $this->photo->store('profile_pic', 'public');
+            $data['profile_photo_path'] = basename($path);
         }
 
         $user->update($data);
@@ -442,7 +465,7 @@ class UserManagement extends Component
 
     public function resetFields()
     {
-        $this->reset(['name', 'username', 'password', 'role', 'department_id', 'isEditing', 'editingUserId', 'dept_name', 'isEditingDept', 'editingDeptId', 'role_name', 'selected_permissions', 'isEditingRole', 'editingRoleId']);
+        $this->reset(['name', 'username', 'password', 'role', 'department_id', 'isEditing', 'editingUserId', 'dept_name', 'isEditingDept', 'editingDeptId', 'role_name', 'selected_permissions', 'isEditingRole', 'editingRoleId', 'photo', 'existingPhoto']);
     }
 
     public function openCreateModal()
